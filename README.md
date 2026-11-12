@@ -4,6 +4,9 @@
 
 **바로 보기:** https://cjh3131473-hash.github.io/co2-room-3d/
 
+**발표 모드 (환경설비실험 CO₂ 측정 발표 1조 · 박성현, 송동현, 최진혁):** https://cjh3131473-hash.github.io/co2-room-3d/presentation/
+→ / Space / PageDown 다음, ← / PageUp 이전, Esc 자유 조작 · 주소 끝에 `#5`처럼 번호를 붙이면 그 장부터 시작
+
 | 바로가기 | 내용 |
 |---|---|
 | [전체 보기](https://cjh3131473-hash.github.io/co2-room-3d/) | 360° 회전, 측정 조건, CO₂ 농도 그래프 |
@@ -72,5 +75,6 @@
 
 
 - `index.html` — 3D 페이지 (`자취방_3D.html`과 같은 파일)
+- `presentation/index.html` — 같은 3D에 발표 모드를 켠 페이지 (10장 구성)
 - `자취방_평면도.pdf` (3쪽), `자취방_평면도.png`, `자취방_공기흐름도.png`, `자취방_Q1Q2.png` — 도면·계산
 - `_source/` — 치수(`layout.json`), 페이지 템플릿, 생성 스크립트(`build.py`, `plan.py`)

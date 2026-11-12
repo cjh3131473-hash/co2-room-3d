@@ -232,6 +232,44 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
   font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); text-align: center; padding-inline: 24px;
 }
 
+
+/* ---- 발표 모드 (presentation/ 주소 전용) ---- */
+:root { --ps: 1; }
+.present .toolbar, .present .hint { display: none; }
+.present.pfree .toolbar { display: flex; }
+.present .titleblock h1 { font-size: 20px; }
+.present .flow { transform: scale(var(--ps)); transform-origin: left bottom; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 170px) / var(--ps)); }
+.present .panel { transform: scale(var(--ps)); transform-origin: right top; max-height: calc((100% - 250px) / var(--ps)); }
+.present.pfree .flow { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 248px) / var(--ps)); }
+.pcover {
+  position: fixed; z-index: 7; left: 0; right: 0; top: 50%; transform: translateY(-50%); margin-inline: auto;
+  width: min(780px, calc(100vw - 32px)); padding: 36px 40px 32px; display: grid; gap: 14px;
+}
+.pcover h1 { margin: 0; font-size: clamp(30px, 4vw, 50px); line-height: 1.15; font-weight: 600; text-wrap: balance; }
+.pcover p { margin: 0; font-size: clamp(16px, 1.5vw, 20px); color: var(--muted); line-height: 1.55; }
+.pteam { font-size: clamp(18px, 1.8vw, 24px); font-weight: 600; color: var(--ink); }
+#pstart { justify-self: start; background: var(--fg); color: var(--paper); font-size: 16px; padding: 10px 18px; margin-top: 4px; }
+.pcap {
+  position: fixed; z-index: 7; left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); margin-inline: auto; max-width: 1080px;
+  padding: 18px 24px 12px; display: grid; gap: 10px;
+}
+.present.sheet-left .pcap { left: calc(32px + 424px * var(--ps)); margin-inline: 0; max-width: none; }
+.present.info-right .pcap { right: calc(32px + 364px * var(--ps)); margin-inline: 0; max-width: none; }
+.present.info-right .panel { max-height: calc((100% - 32px) / var(--ps)); }
+.pcaphead { display: flex; gap: 14px; align-items: baseline; }
+.pno { font-family: var(--font-mono); font-size: 15px; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+.pcap h2 { margin: 0; font-size: clamp(22px, 2.1vw, 32px); font-weight: 600; line-height: 1.2; text-wrap: balance; }
+.pcap ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: clamp(15px, 1.3vw, 20px); line-height: 1.45; }
+.pcap li::marker { color: var(--signal); }
+.pend { margin: 0; font-size: clamp(16px, 1.4vw, 21px); color: var(--ink); }
+.pnav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 8px; }
+.pdots { display: flex; gap: 7px; flex: 1; justify-content: center; }
+.pdots button { width: 10px; height: 10px; padding: 0; border-radius: 50%; background: var(--line); }
+.pdots button[aria-current="step"] { background: var(--fg); }
+.pghost { color: var(--muted); }
+.presume { position: fixed; z-index: 7; right: calc(16px + env(safe-area-inset-right, 0px)); top: calc(16px + env(safe-area-inset-top, 0px)); font-weight: 500; padding: 10px 16px; }
+
 @media (max-width: 1100px) {
   .flow { width: 300px; }
   .qsheet { width: 340px; }
@@ -362,6 +400,27 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
   <button id="exitBtn" type="button">밖으로</button>
 </div>
 
+<!--PRESENT-->
+<section class="pcover sheet" id="pcover" hidden>
+  <div class="eyebrow">환경설비실험 · 10·11주차 환기와 실내 CO₂</div>
+  <h1>환경설비실험 CO₂ 측정 발표 1조</h1>
+  <p>자취방 원룸에서 3명이 약 1시간 머문 뒤 퇴실했고, 창문과 문을 모두 닫은 채 CO₂ 농도를 1분 간격으로 측정했습니다.</p>
+  <div class="pteam" id="pcoverTeam"></div>
+  <button type="button" id="pstart">발표 시작 →</button>
+</section>
+<section class="pcap sheet" id="pcap" hidden aria-live="polite">
+  <div class="pcaphead"><span class="pno" id="pcapNo"></span><h2 id="pcapTitle"></h2></div>
+  <ul id="pcapBody"></ul>
+  <p class="pend" id="pend" hidden><b>1조</b> <span id="pendTeam"></span> · 들어 주셔서 감사합니다. 질문 받겠습니다.</p>
+  <div class="pnav">
+    <button type="button" id="pprev">← 이전</button>
+    <div class="pdots" id="pcapDots"></div>
+    <button type="button" id="pnext">다음 →</button>
+    <button type="button" id="pfreeBtn" class="pghost">자유 조작 (Esc)</button>
+  </div>
+</section>
+<button type="button" class="presume sheet" id="presume" hidden>발표 이어서 (→)</button>
+<!--/PRESENT-->
 <nav class="toolbar sheet" aria-label="보기 전환">
   <div class="seg" role="group" aria-label="시점">
     <button type="button" data-mode="overview" aria-pressed="true">전체 보기</button>
@@ -400,6 +459,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
+const PRESENT = /*__PRESENT__*/false;
 const L = /*__LAYOUT__*/null;
 const DATA = /*__DATA__*/null;
 
@@ -1559,6 +1619,10 @@ function applyViewOffset() {
   let off = 0, offY = 0;
   if (w > 760 && mode !== 'inside') off = flowOn ? -Math.min(190, w * 0.13) : qOn ? -Math.min(200, w * 0.14) : Math.min(150, w * 0.1);
   if (w <= 760 && (flowOn || qOn || !panel.classList.contains('collapsed'))) offY = h * 0.2;
+  if (PRESENT && w > 760) {
+    const ps = Math.max(1, Math.min(1.35, w / 1400)); document.documentElement.style.setProperty('--ps', ps.toFixed(3));
+    if (mode !== 'inside') { off = (flowOn || qOn) ? -Math.min(230, w * 0.15) * ps : infoHidden ? 0 : off; if (!document.body.classList.contains('pfree')) offY += Math.min(110, h * 0.1); }
+  }
   if (off || offY) camera.setViewOffset(w, h, off, offY, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -1628,7 +1692,8 @@ const flowBtn = document.getElementById('flowBtn'), flowSheet = document.getElem
 const slider = document.getElementById('timeSlider'), playBtn = document.getElementById('playBtn');
 const case1Btn = document.getElementById('case1Btn'), case2Btn = document.getElementById('case2Btn');
 slider.max = String(NPTS - 1);
-let tIdx = Math.round((iStart + iPeak) / 2), playing = false, playAcc = 0;
+let tIdx = Math.round((iStart + iPeak) / 2), playing = false, playAcc = 0, playUntil = null, infoHidden = false;
+const PLAY_RATE = PRESENT ? 7 : 12;                     // measured minutes per second of playback
 slider.value = String(tIdx);
 function caseOf(i) { return i <= iPeak ? 'c1' : 'c2'; }
 const targetFor = ppm => Math.round(NPART * THREE.MathUtils.clamp((ppm - CO) / (2600 - CO), 0, 1));
@@ -1648,12 +1713,12 @@ function setTime(i, fromPlay = false) {
   if (flowOn) sensorEl.innerHTML = `<b>${S.name} · ${hm(at(tIdx))}</b><em>${v.toLocaleString('en-US')} ppm</em><span>위에서 두 번째 칸 · 바닥 위 약 ${S.y.toFixed(2)} m</span>`;
   drawChartCursor();
 }
-function setPlaying(on) { playing = on; playBtn.textContent = on ? '정지' : '재생'; playBtn.setAttribute('aria-pressed', String(on)); }
+function setPlaying(on) { playing = on; if (!on) playUntil = null; playBtn.textContent = on ? '정지' : '재생'; playBtn.setAttribute('aria-pressed', String(on)); }
 slider.addEventListener('input', () => { setPlaying(false); setTime(+slider.value); });
 playBtn.addEventListener('click', () => { if (!playing && tIdx >= NPTS - 1) setTime(0); setPlaying(!playing); });
 case1Btn.addEventListener('click', () => { setPlaying(false); setTime(Math.round((iStart + iPeak) / 2)); });
 case2Btn.addEventListener('click', () => { setPlaying(false); setTime(Math.round((iPeak + NPTS - 1) / 2)); });
-function syncSheets() { panel.hidden = flowOn || qOn; hint.hidden = flowOn || qOn; applyViewOffset(); }
+function syncSheets() { panel.hidden = flowOn || qOn || infoHidden; hint.hidden = flowOn || qOn; document.body.classList.toggle('sheet-left', flowOn || qOn); applyViewOffset(); }
 function setFlow(on) {
   if (on && qOn) setQ(false);
   flowOn = on; flowBtn.setAttribute('aria-pressed', String(on));
@@ -1712,8 +1777,8 @@ function updateFlow(dt, t) {
   }
   stepParticles(dt, c === 'c1', playing);
   if (playing) {
-    playAcc += dt * 12;
-    if (playAcc >= 1) { const step = Math.floor(playAcc); playAcc -= step; setTime(tIdx + step, true); if (tIdx >= NPTS - 1) setPlaying(false); }
+    playAcc += dt * PLAY_RATE;
+    if (playAcc >= 1) { const step = Math.floor(playAcc); playAcc -= step; setTime(tIdx + step, true); if (tIdx >= NPTS - 1 || (playUntil != null && tIdx >= playUntil)) setPlaying(false); }
   }
 }
 const clock = new THREE.Clock();
@@ -1898,6 +1963,114 @@ qBtn.addEventListener('click', () => setQ(!qOn));
 renderSheets();
 setSim(NOCC, Q1.n);
 
+/* ---------------- 발표 모드 (presentation/ 주소에서만 켜짐) ---------------- */
+if (PRESENT) {
+  const TEAM = ['박성현', '송동현', '최진혁'];
+  const DECK = '환경설비실험 CO₂ 측정 발표 1조';
+  const cap = document.getElementById('pcap'), cover = document.getElementById('pcover'), resume = document.getElementById('presume');
+  const capNo = document.getElementById('pcapNo'), capTitle = document.getElementById('pcapTitle'), capBody = document.getElementById('pcapBody'), capDots = document.getElementById('pcapDots');
+  document.body.classList.add('present');
+  document.querySelector('.titleblock .eyebrow').textContent = `1조 · ${TEAM.join(' · ')}`;
+  document.querySelector('.titleblock h1').textContent = DECK;
+  document.querySelector('.titleblock p').textContent = '10·11주차 환기와 실내 CO₂ — 자취방 원룸 측정';
+  document.getElementById('pcoverTeam').textContent = `1조 · ${TEAM.join(' · ')}`;
+  document.getElementById('pendTeam').textContent = TEAM.join(' · ');
+
+  const Q2 = q2();
+  let iOver = iStart; while (iOver < iPeak && co2[iOver] <= 1000) iOver++;
+  const n2 = v => v.toLocaleString('en-US');
+  const scrollQ = id => { const el = document.getElementById(id).closest('.qcard'); qSheet.scrollTo({ top: el.offsetTop - 8, behavior: REDUCED ? 'auto' : 'smooth' }); };
+  const reset = (o = {}) => {
+    playUntil = null; setPlaying(false);
+    if (!o.flow && flowOn) setFlow(false);
+    if (!o.q && qOn) setQ(false);
+    if (o.flow && !flowOn) setFlow(true);
+    if (o.q && !qOn) setQ(true);
+    infoHidden = !o.info; document.body.classList.toggle('info-right', !!o.info); syncSheets();
+    setSpin(!!o.spin && !REDUCED);
+  };
+  const STEPS = [
+    { title: DECK, cover: true, run() { reset({ spin: true }); goOverview(); } },
+    { title: '측정 장소 · 자취방 원룸', body: [
+        `가로 ${R.w.toFixed(2)} × 세로 ${R.d.toFixed(2)} m, 천장고 ${H.toFixed(2)} m (줄자 실측) + 주방 폭 ${(K.z1 - K.z0).toFixed(2)} m`,
+        `실 체적 V ≈ ${VOL.toFixed(1)} m³ — 환기횟수 n과 환기량 Q = n·V 계산에 사용 (11주차 p.9)`,
+        '방 사진 9장과 실측 치수로 만든 3D 모델, 드래그로 돌려 볼 수 있음'],
+      run() { reset(); dimsOn = true; goTop(); } },
+    { title: '측정 방법', body: [
+        `${S.model} CO₂ 측정기, 1분 간격 ${NPTS}회 기록 (10주차 p.26, p.35)`,
+        `전자레인지 선반 위에서 두 번째 칸, 전기포트 옆 · 바닥 위 약 ${S.y.toFixed(2)} m`,
+        '창문·현관문·화장실 문 모두 닫음 · 20대 남성 3명 약 1시간 재실 후 퇴실'],
+      run() { reset(); goSensor(); } },
+    { title: '측정 결과', body: [
+        `${hm(at(iStart))} ${n2(co2[iStart])} ppm → 3명 ${Math.round((iPeak - iStart) * MPS)}분 재실 → ${hm(at(iPeak))} 최고 ${n2(co2[iPeak])} ppm`,
+        `실내 기준 1,000 ppm (11주차 p.4)을 ${hm(at(iOver))}부터 넘음, 입실 약 ${Math.round((iOver - iStart) * MPS)}분 만`,
+        `퇴실 후 ${hm(at(NPTS - 1))}까지 ${n2(co2[NPTS - 1])} ppm으로 아주 천천히 감소`],
+      run() { reset({ info: true }); goOverview(); } },
+    { title: 'Case 1 · 증가형 (3명 재실)', body: [
+        '재실자가 내쉰 CO₂가 위로 올라가 방 전체로 섞임 — 완전혼합 가정 (11주차 p.14)',
+        '아래 틈(창틀·현관문)으로 외기 유입 = 침기, 위 틈·배관 관통부로 유출 = 누기 (10주차 p.12–13)',
+        '측정 시각이 재생되며 주황 점(CO₂)이 측정 농도만큼 늘어남'],
+      run() { reset({ flow: true }); goOverview(); setTime(iStart); playUntil = iPeak; setPlaying(true); } },
+    { title: 'Case 2 · 감소형 (무인)', body: [
+        '아무도 없으니 G = 0 → 틈새바람으로 들어온 외기에 희석되기만 함',
+        `창·문을 닫아 두면 아주 천천히 감소 → 감소 속도로 기밀성을 판단 (10주차 p.23)`,
+        `${hm(at(Q1.i0))} 문을 닫은 뒤부터 재생`],
+      run() { reset({ flow: true }); goOverview(); setTime(Q1.i0); playUntil = NPTS - 1; setPlaying(true); } },
+    { title: 'Q1 · 공기교환율 n과 침기량 Q', body: [
+        `0분 ${hm(at(Q1.i0))} ${n2(Q1.c0)} ppm, 60분 ${hm(at(Q1.i1))} ${n2(Q1.c1)} ppm (문 닫은 뒤 첫 값 기준, 11주차 p.30)`,
+        `n = ln[(${n2(Q1.c0)} − ${CO}) / (${n2(Q1.c1)} − ${CO})] / 1 h = ${Q1.n.toFixed(3)} 회/h → Q = n·V = ${Q1.Q.toFixed(1)} m³/h`,
+        `반감기 ${Q1.half.toFixed(1)} h · 신축 공동주택 기준 0.5 회/h의 ${Math.round(Q1.n / 0.5 * 100)}% 수준`],
+      run() { reset({ q: true }); goOverview(); setTimeout(() => scrollQ('q1Eq'), 60); } },
+    { title: 'Q2-1 · 계속 머물러도 1,000 ppm 이하가 되려면', body: [
+        `최고 ${n2(co2[iPeak])} ppm > 1,000 ppm → Q2-1 해당 · 정상상태 Css = Cᵢ + G/Q ≤ 1,000 ppm (11주차 p.20)`,
+        `G = 3명 × 0.018 = ${Q2.G.toFixed(3)} m³/h → Q ≥ ${Q2.G.toFixed(3)} / (580 × 10⁻⁶) = ${Q2.Qreq.toFixed(1)} m³/h`,
+        `n = ${Q2.nReq.toFixed(2)} 회/h · 1인당 ${Q2.perPerson.toFixed(1)} m³/h (강의 29–36) · 지금 침기량의 약 ${Math.round(Q2.ratio)}배`],
+      run() { reset({ q: true }); goOverview(); setTimeout(() => scrollQ('q2Eq'), 60); } },
+    { title: '계산기로 확인', body: [
+        `지금 틈새바람(n = ${Q1.n.toFixed(2)})이면 3명 1시간에 약 ${n2(Math.round(Math.max(...modelSeries(NOCC, Q1.n).filter(v => v != null))))} ppm`,
+        `'Q2 필요 환기' 버튼 → n = ${Q2.nReq.toFixed(2)}이면 1,000 ppm 아래에 머묾`,
+        `측정으로 거꾸로 구한 1인당 발생량 약 ${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h — 가정 18 L/h(p.24 Office Work)보다 조금 큼`],
+      run() { reset({ q: true }); goOverview(); setSim(NOCC, Q1.n); setTimeout(() => scrollQ('simChart'), 60); } },
+    { title: '정리', end: true, body: [
+        `창문과 문을 닫으면 틈새바람(${Q1.n.toFixed(2)} 회/h)만으로는 3명이 1시간 만에 ${n2(co2[iPeak])} ppm`,
+        `1,000 ppm을 지키려면 시간당 약 ${Math.round(Q2.Qreq)} m³의 외기 필요 → 창문 환기나 기계환기가 필요`,
+        'CO₂ 측정기 하나로 보이지 않는 환기량을 잴 수 있었음 (11주차 p.9)'],
+      run() { reset({ spin: true }); goOverview(); } },
+  ];
+  let cur = 0, free = false;
+  STEPS.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', `${i + 1}. ${s.title}`); b.addEventListener('click', () => show(i)); capDots.appendChild(b); });
+  function show(i) {
+    cur = Math.max(0, Math.min(STEPS.length - 1, i)); free = false;
+    const s = STEPS[cur];
+    document.body.classList.remove('pfree');
+    cover.hidden = !s.cover; cap.hidden = !!s.cover; resume.hidden = true;
+    capNo.textContent = `${cur + 1} / ${STEPS.length}`;
+    capTitle.textContent = s.title;
+    capBody.innerHTML = (s.body || []).map(t => `<li>${t}</li>`).join('');
+    document.getElementById('pend').hidden = !s.end;
+    [...capDots.children].forEach((b, j) => b.setAttribute('aria-current', j === cur ? 'step' : 'false'));
+    s.run();
+    applyViewOffset();
+  }
+  function goFree() { free = true; document.body.classList.add('pfree'); document.body.classList.remove('info-right'); cap.hidden = true; cover.hidden = true; resume.hidden = false; reset({}); infoHidden = false; syncSheets(); }
+  addEventListener('keydown', e => {
+    const t = e.target, typing = t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA');
+    const k = e.key;
+    if (k === 'Escape') { e.preventDefault(); free ? show(cur) : goFree(); return; }
+    if (typing && !(k === 'PageDown' || k === 'PageUp')) return;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(free ? cur : cur + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(free ? cur : cur - 1); }
+    else if (k === 'Home') { e.preventDefault(); show(0); }
+    else if (k === 'End') { e.preventDefault(); show(STEPS.length - 1); }
+  });
+  document.getElementById('pprev').addEventListener('click', () => show(cur - 1));
+  document.getElementById('pnext').addEventListener('click', () => show(cur + 1));
+  document.getElementById('pfreeBtn').addEventListener('click', goFree);
+  document.getElementById('pstart').addEventListener('click', () => show(1));
+  resume.addEventListener('click', () => show(cur));
+  window.__presentStart = () => { const h = parseInt(location.hash.replace('#', ''), 10); show(Number.isFinite(h) ? h - 1 : 0); };
+}
+
 /* ---------------- start ---------------- */
 const k0 = fitK();
 camera.position.set(5.0 * k0 * 1.25, 6.0 * k0 * 1.15, 6.4 * k0 * 1.25);
@@ -1914,8 +2087,7 @@ function route() {
   else if (h === 'sensor') goSensor();
   else { goOverview(); setSpin(!REDUCED); }
 }
-route();
-addEventListener('hashchange', route);
+if (PRESENT) window.__presentStart(); else { route(); addEventListener('hashchange', route); }
 document.getElementById('loading').style.display = 'none';
 requestAnimationFrame(frame);
 </script>

@@ -232,6 +232,44 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
   font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); text-align: center; padding-inline: 24px;
 }
 
+
+/* ---- 발표 모드 (presentation/ 주소 전용) ---- */
+:root { --ps: 1; }
+.present .toolbar, .present .hint { display: none; }
+.present.pfree .toolbar { display: flex; }
+.present .titleblock h1 { font-size: 20px; }
+.present .flow { transform: scale(var(--ps)); transform-origin: left bottom; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 170px) / var(--ps)); }
+.present .panel { transform: scale(var(--ps)); transform-origin: right top; max-height: calc((100% - 250px) / var(--ps)); }
+.present.pfree .flow { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 248px) / var(--ps)); }
+.pcover {
+  position: fixed; z-index: 7; left: 0; right: 0; top: 50%; transform: translateY(-50%); margin-inline: auto;
+  width: min(780px, calc(100vw - 32px)); padding: 36px 40px 32px; display: grid; gap: 14px;
+}
+.pcover h1 { margin: 0; font-size: clamp(30px, 4vw, 50px); line-height: 1.15; font-weight: 600; text-wrap: balance; }
+.pcover p { margin: 0; font-size: clamp(16px, 1.5vw, 20px); color: var(--muted); line-height: 1.55; }
+.pteam { font-size: clamp(18px, 1.8vw, 24px); font-weight: 600; color: var(--ink); }
+#pstart { justify-self: start; background: var(--fg); color: var(--paper); font-size: 16px; padding: 10px 18px; margin-top: 4px; }
+.pcap {
+  position: fixed; z-index: 7; left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); margin-inline: auto; max-width: 1080px;
+  padding: 18px 24px 12px; display: grid; gap: 10px;
+}
+.present.sheet-left .pcap { left: calc(32px + 424px * var(--ps)); margin-inline: 0; max-width: none; }
+.present.info-right .pcap { right: calc(32px + 364px * var(--ps)); margin-inline: 0; max-width: none; }
+.present.info-right .panel { max-height: calc((100% - 32px) / var(--ps)); }
+.pcaphead { display: flex; gap: 14px; align-items: baseline; }
+.pno { font-family: var(--font-mono); font-size: 15px; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+.pcap h2 { margin: 0; font-size: clamp(22px, 2.1vw, 32px); font-weight: 600; line-height: 1.2; text-wrap: balance; }
+.pcap ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: clamp(15px, 1.3vw, 20px); line-height: 1.45; }
+.pcap li::marker { color: var(--signal); }
+.pend { margin: 0; font-size: clamp(16px, 1.4vw, 21px); color: var(--ink); }
+.pnav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 8px; }
+.pdots { display: flex; gap: 7px; flex: 1; justify-content: center; }
+.pdots button { width: 10px; height: 10px; padding: 0; border-radius: 50%; background: var(--line); }
+.pdots button[aria-current="step"] { background: var(--fg); }
+.pghost { color: var(--muted); }
+.presume { position: fixed; z-index: 7; right: calc(16px + env(safe-area-inset-right, 0px)); top: calc(16px + env(safe-area-inset-top, 0px)); font-weight: 500; padding: 10px 16px; }
+
 @media (max-width: 1100px) {
   .flow { width: 300px; }
   .qsheet { width: 340px; }
@@ -400,6 +438,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
+const PRESENT = /*__PRESENT__*/false;
 const L = {"_note": "단위 m. x: 화장실·주방 쪽 벽(0) -> 침대 쪽 벽, z: 창문 벽(0) -> 현관 벽. 실측: 가로 2.55, 세로 5.20, 천장고 2.25, 주방 폭 1.20. 나머지(가구, 주방 깊이 등)는 사진 기반 추정. 이 파일을 고친 뒤 build.py, plan.py 를 다시 실행하면 3D와 도면이 같이 바뀝니다.", "room": {"w": 2.55, "d": 5.2, "h": 2.25, "wallT": 0.12}, "measured": ["w", "d", "h", "kitchenWidth"], "kitchen": {"x0": -0.9, "z0": 2.9, "z1": 4.1}, "wardrobeBay": {"x0": -0.6, "z0": 4.1, "z1": 5.2}, "floor": [[0, 0], [2.55, 0], [2.55, 5.2], [-0.6, 5.2], [-0.6, 4.1], [-0.9, 4.1], [-0.9, 2.9], [0, 2.9]], "slab": [[-0.12, -0.12], [2.67, -0.12], [2.67, 5.32], [-0.72, 5.32], [-0.72, 4.22], [-1.02, 4.22], [-1.02, 2.78], [-0.12, 2.78]], "walls": [{"key": "N", "axis": "x", "at": 0, "inward": 1, "span": [-0.12, 2.67], "inner": [0, 2.55], "open": [{"a0": 0.12, "a1": 1.68, "y0": 0.88, "y1": 2.0}]}, {"key": "E", "axis": "z", "at": 2.55, "inward": -1, "span": [-0.12, 5.32], "inner": [0, 5.2]}, {"key": "S", "axis": "x", "at": 5.2, "inward": -1, "span": [-0.72, 2.67], "inner": [-0.6, 2.55], "open": [{"a0": 0.04, "a1": 0.92, "y0": 0, "y1": 2.02}]}, {"key": "WA", "axis": "z", "at": 0, "inward": 1, "span": [-0.12, 2.9], "inner": [0, 2.9], "open": [{"a0": 1.65, "a1": 2.4, "y0": 0, "y1": 2.0}]}, {"key": "KN", "axis": "x", "at": 2.9, "inward": 1, "span": [-1.02, 0], "inner": [-0.9, 0], "pair": "WA"}, {"key": "KB", "axis": "z", "at": -0.9, "inward": 1, "span": [2.78, 4.22], "inner": [2.9, 4.1]}, {"key": "KS", "axis": "x", "at": 4.1, "inward": -1, "span": [-1.02, -0.6], "inner": [-0.9, -0.6], "pair": "KB"}, {"key": "WB", "axis": "z", "at": -0.6, "inward": 1, "span": [4.1, 5.32], "inner": [4.1, 5.2]}], "window": {"x0": 0.12, "x1": 1.68, "y0": 0.88, "y1": 2.0}, "bathDoor": {"z0": 1.65, "z1": 2.4, "h": 2.0}, "entrance": {"x0": 0.04, "x1": 0.92, "h": 2.02}, "items": {"bed": {"name": "침대", "x0": 1.55, "x1": 2.55, "z0": 0.0, "z1": 2.04, "h": 0.5}, "bookshelf": {"name": "책장", "x0": 0.3, "x1": 1.53, "z0": 0.02, "z1": 0.32, "h": 0.8}, "lamp": {"name": "스탠드", "x0": 0.04, "x1": 0.28, "z0": 0.08, "z1": 0.32, "h": 1.5}, "rug": {"name": "러그", "x0": 0.03, "x1": 1.53, "z0": 0.36, "z1": 1.68, "h": 0.012}, "mat": {"name": "접이식 매트", "x0": 0.06, "x1": 0.98, "z0": 0.46, "z1": 1.36, "h": 0.24}, "bathMat": {"name": "발매트", "x0": 0.03, "x1": 0.6, "z0": 1.78, "z1": 2.28, "h": 0.01}, "ac": {"name": "에어컨", "x0": 2.34, "x1": 2.55, "z0": 0.3, "z1": 1.12, "y0": 1.85, "y1": 2.12}, "rack": {"name": "전자레인지 선반", "x0": 2.15, "x1": 2.55, "z0": 2.07, "z1": 2.57, "h": 1.22}, "fridge": {"name": "냉장고", "x0": 1.9, "x1": 2.55, "z0": 2.61, "z1": 3.21, "h": 1.62}, "drawer": {"name": "서랍장", "x0": 2.13, "x1": 2.55, "z0": 3.25, "z1": 3.65, "h": 0.62}, "dehum": {"name": "제습기", "x0": 1.76, "x1": 2.06, "z0": 3.27, "z1": 3.57, "h": 0.62}, "chair": {"name": "의자", "x0": 1.9, "x1": 2.44, "z0": 3.98, "z1": 4.52, "h": 1.05}, "desk": {"name": "책상", "x0": 1.8, "x1": 2.55, "z0": 4.62, "z1": 5.19, "h": 0.73}, "tallShelf": {"name": "선반", "x0": 1.38, "x1": 1.79, "z0": 4.6, "z1": 5.19, "h": 1.22, "hBack": 1.42}, "cabinet": {"name": "신발장", "x0": 0.96, "x1": 1.37, "z0": 4.62, "z1": 5.19, "h": 0.82}, "shoeArea": {"name": "현관", "x0": 0.0, "x1": 0.95, "z0": 4.7, "z1": 5.2}, "wardrobe": {"name": "붙박이장", "x0": -0.6, "x1": 0.0, "z0": 4.1, "z1": 5.2, "h": 2.25}, "washer": {"name": "세탁기", "x0": -0.88, "x1": -0.32, "z0": 2.92, "z1": 3.52, "h": 0.84}, "sink": {"name": "싱크대", "x0": -0.9, "x1": -0.3, "z0": 3.52, "z1": 4.1, "h": 0.86}, "upperCab": {"name": "상부장", "x0": -0.9, "x1": -0.55, "z0": 2.9, "z1": 4.1, "y0": 1.42, "y1": 2.1}, "basket": {"name": "빨래 바구니", "x0": -0.26, "x1": 0.08, "z0": 3.05, "z1": 3.39, "h": 0.42}, "bin": {"name": "휴지통", "x0": -0.27, "x1": -0.05, "z0": 3.84, "z1": 4.06, "h": 0.32}}, "sensor": {"name": "CO₂ 측정기", "model": "T&D TR-76Ui", "shelf": "전자레인지 바로 아래 칸 (위에서 두 번째), 전기포트 옆", "x": 2.23, "y": 0.65, "z": 2.17}, "occupants": [{"name": "A", "x": 0.55, "z": 0.95, "seat": 0.25, "face": 1.5708}, {"name": "B", "x": 1.74, "z": 1.2, "seat": 0.48, "face": -1.5708}, {"name": "C", "x": 2.17, "z": 4.24, "seat": 0.49, "face": 0}], "outdoorCO2": 420, "viewpoints": [{"name": "방 중앙", "x": 1.1, "z": 3.05, "look": [0.3, -1]}, {"name": "창가", "x": 0.95, "z": 1.45, "look": [0.25, 1]}, {"name": "책상 앞", "x": 1.5, "z": 3.9, "look": [-1, -0.3]}]};
 const DATA = {"start":"2026-11-11 18:14:21","step":60,"co2":[1075,935,758,777,814,866,890,911,943,973,1006,1047,1074,1122,1157,1190,1221,1241,1263,1299,1334,1370,1402,1430,1458,1474,1494,1548,1627,1681,1687,1696,1734,1770,1795,1813,1845,1874,1865,1862,1908,1932,1909,1892,1889,1898,1922,1966,1996,2020,2053,2092,2122,2161,2194,2223,2257,2304,2356,2399,2437,2465,2497,2508,2450,2406,2390,2394,2417,2425,2424,2417,2410,2405,2400,2396,2389,2382,2378,2374,2370,2365,2355,2352,2349,2344,2343,2344,2341,2334,2323,2316,2313,2311,2305,2298,2292,2288,2279,2270,2260,2258,2257,2251,2243,2239,2236,2230,2227,2223,2217,2214,2208,2206,2199,2198,2194,2191,2183,2177,2170,2166,2159,2157,2152,2142,2137,2136,2135,2134,2131,2123,2120,2119,2115,2111,2107,2100,2095,2093,2090,2084,2074,2073,2070,2063,2058,2051,2047,2043,2039,2035,2031,2030,2028,2027,2021,2011,2010,2008,2004,1999,1995,1988,1985,1982,1978,1969,1962,1960,1958,1953,1947,1939,1935,1934,1929,1922,1923,1922,1918,1911,1913],"temp":[18.5,18.6,18.6,18.6,18.7,18.7,18.7,18.7,18.8,18.8,18.8,18.8,18.9,18.9,18.9,18.9,18.9,19.0,19.0,19.0,19.0,19.1,19.1,19.1,19.2,19.2,19.2,19.2,19.3,19.3,19.3,19.3,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.5,19.5,19.5,19.5,19.5,19.5,19.6,19.6,19.6,19.6,19.6,19.6,19.6,19.6,19.6,19.6,19.6,19.6,19.5,19.5,19.5,19.5,19.5,19.5,19.5,19.4,19.4,19.4,19.4,19.4,19.4,19.4,19.3,19.3,19.3,19.3,19.3,19.3,19.3,19.3,19.3,19.3,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.2,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.1,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,19.0,18.9,18.9,18.9,18.9,18.9,18.9,18.9,18.9],"rh":[53.0,53.0,53.0,54.0,55.0,55.0,55.0,55.0,56.0,56.0,56.0,56.0,57.0,57.0,57.0,57.0,57.0,57.0,58.0,58.0,58.0,59.0,59.0,59.0,59.0,59.0,59.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,61.0,61.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,61.0,61.0,61.0,61.0,61.0,61.0,62.0,62.0,62.0,63.0,63.0,63.0,63.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,61.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,60.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,59.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0,58.0]};
 
@@ -1559,6 +1598,10 @@ function applyViewOffset() {
   let off = 0, offY = 0;
   if (w > 760 && mode !== 'inside') off = flowOn ? -Math.min(190, w * 0.13) : qOn ? -Math.min(200, w * 0.14) : Math.min(150, w * 0.1);
   if (w <= 760 && (flowOn || qOn || !panel.classList.contains('collapsed'))) offY = h * 0.2;
+  if (PRESENT && w > 760) {
+    const ps = Math.max(1, Math.min(1.35, w / 1400)); document.documentElement.style.setProperty('--ps', ps.toFixed(3));
+    if (mode !== 'inside') { off = (flowOn || qOn) ? -Math.min(230, w * 0.15) * ps : infoHidden ? 0 : off; if (!document.body.classList.contains('pfree')) offY += Math.min(110, h * 0.1); }
+  }
   if (off || offY) camera.setViewOffset(w, h, off, offY, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -1628,7 +1671,8 @@ const flowBtn = document.getElementById('flowBtn'), flowSheet = document.getElem
 const slider = document.getElementById('timeSlider'), playBtn = document.getElementById('playBtn');
 const case1Btn = document.getElementById('case1Btn'), case2Btn = document.getElementById('case2Btn');
 slider.max = String(NPTS - 1);
-let tIdx = Math.round((iStart + iPeak) / 2), playing = false, playAcc = 0;
+let tIdx = Math.round((iStart + iPeak) / 2), playing = false, playAcc = 0, playUntil = null, infoHidden = false;
+const PLAY_RATE = PRESENT ? 7 : 12;                     // measured minutes per second of playback
 slider.value = String(tIdx);
 function caseOf(i) { return i <= iPeak ? 'c1' : 'c2'; }
 const targetFor = ppm => Math.round(NPART * THREE.MathUtils.clamp((ppm - CO) / (2600 - CO), 0, 1));
@@ -1648,12 +1692,12 @@ function setTime(i, fromPlay = false) {
   if (flowOn) sensorEl.innerHTML = `<b>${S.name} · ${hm(at(tIdx))}</b><em>${v.toLocaleString('en-US')} ppm</em><span>위에서 두 번째 칸 · 바닥 위 약 ${S.y.toFixed(2)} m</span>`;
   drawChartCursor();
 }
-function setPlaying(on) { playing = on; playBtn.textContent = on ? '정지' : '재생'; playBtn.setAttribute('aria-pressed', String(on)); }
+function setPlaying(on) { playing = on; if (!on) playUntil = null; playBtn.textContent = on ? '정지' : '재생'; playBtn.setAttribute('aria-pressed', String(on)); }
 slider.addEventListener('input', () => { setPlaying(false); setTime(+slider.value); });
 playBtn.addEventListener('click', () => { if (!playing && tIdx >= NPTS - 1) setTime(0); setPlaying(!playing); });
 case1Btn.addEventListener('click', () => { setPlaying(false); setTime(Math.round((iStart + iPeak) / 2)); });
 case2Btn.addEventListener('click', () => { setPlaying(false); setTime(Math.round((iPeak + NPTS - 1) / 2)); });
-function syncSheets() { panel.hidden = flowOn || qOn; hint.hidden = flowOn || qOn; applyViewOffset(); }
+function syncSheets() { panel.hidden = flowOn || qOn || infoHidden; hint.hidden = flowOn || qOn; document.body.classList.toggle('sheet-left', flowOn || qOn); applyViewOffset(); }
 function setFlow(on) {
   if (on && qOn) setQ(false);
   flowOn = on; flowBtn.setAttribute('aria-pressed', String(on));
@@ -1712,8 +1756,8 @@ function updateFlow(dt, t) {
   }
   stepParticles(dt, c === 'c1', playing);
   if (playing) {
-    playAcc += dt * 12;
-    if (playAcc >= 1) { const step = Math.floor(playAcc); playAcc -= step; setTime(tIdx + step, true); if (tIdx >= NPTS - 1) setPlaying(false); }
+    playAcc += dt * PLAY_RATE;
+    if (playAcc >= 1) { const step = Math.floor(playAcc); playAcc -= step; setTime(tIdx + step, true); if (tIdx >= NPTS - 1 || (playUntil != null && tIdx >= playUntil)) setPlaying(false); }
   }
 }
 const clock = new THREE.Clock();
@@ -1898,6 +1942,114 @@ qBtn.addEventListener('click', () => setQ(!qOn));
 renderSheets();
 setSim(NOCC, Q1.n);
 
+/* ---------------- 발표 모드 (presentation/ 주소에서만 켜짐) ---------------- */
+if (PRESENT) {
+  const TEAM = ['박성현', '송동현', '최진혁'];
+  const DECK = '환경설비실험 CO₂ 측정 발표 1조';
+  const cap = document.getElementById('pcap'), cover = document.getElementById('pcover'), resume = document.getElementById('presume');
+  const capNo = document.getElementById('pcapNo'), capTitle = document.getElementById('pcapTitle'), capBody = document.getElementById('pcapBody'), capDots = document.getElementById('pcapDots');
+  document.body.classList.add('present');
+  document.querySelector('.titleblock .eyebrow').textContent = `1조 · ${TEAM.join(' · ')}`;
+  document.querySelector('.titleblock h1').textContent = DECK;
+  document.querySelector('.titleblock p').textContent = '10·11주차 환기와 실내 CO₂ — 자취방 원룸 측정';
+  document.getElementById('pcoverTeam').textContent = `1조 · ${TEAM.join(' · ')}`;
+  document.getElementById('pendTeam').textContent = TEAM.join(' · ');
+
+  const Q2 = q2();
+  let iOver = iStart; while (iOver < iPeak && co2[iOver] <= 1000) iOver++;
+  const n2 = v => v.toLocaleString('en-US');
+  const scrollQ = id => { const el = document.getElementById(id).closest('.qcard'); qSheet.scrollTo({ top: el.offsetTop - 8, behavior: REDUCED ? 'auto' : 'smooth' }); };
+  const reset = (o = {}) => {
+    playUntil = null; setPlaying(false);
+    if (!o.flow && flowOn) setFlow(false);
+    if (!o.q && qOn) setQ(false);
+    if (o.flow && !flowOn) setFlow(true);
+    if (o.q && !qOn) setQ(true);
+    infoHidden = !o.info; document.body.classList.toggle('info-right', !!o.info); syncSheets();
+    setSpin(!!o.spin && !REDUCED);
+  };
+  const STEPS = [
+    { title: DECK, cover: true, run() { reset({ spin: true }); goOverview(); } },
+    { title: '측정 장소 · 자취방 원룸', body: [
+        `가로 ${R.w.toFixed(2)} × 세로 ${R.d.toFixed(2)} m, 천장고 ${H.toFixed(2)} m (줄자 실측) + 주방 폭 ${(K.z1 - K.z0).toFixed(2)} m`,
+        `실 체적 V ≈ ${VOL.toFixed(1)} m³ — 환기횟수 n과 환기량 Q = n·V 계산에 사용 (11주차 p.9)`,
+        '방 사진 9장과 실측 치수로 만든 3D 모델, 드래그로 돌려 볼 수 있음'],
+      run() { reset(); dimsOn = true; goTop(); } },
+    { title: '측정 방법', body: [
+        `${S.model} CO₂ 측정기, 1분 간격 ${NPTS}회 기록 (10주차 p.26, p.35)`,
+        `전자레인지 선반 위에서 두 번째 칸, 전기포트 옆 · 바닥 위 약 ${S.y.toFixed(2)} m`,
+        '창문·현관문·화장실 문 모두 닫음 · 20대 남성 3명 약 1시간 재실 후 퇴실'],
+      run() { reset(); goSensor(); } },
+    { title: '측정 결과', body: [
+        `${hm(at(iStart))} ${n2(co2[iStart])} ppm → 3명 ${Math.round((iPeak - iStart) * MPS)}분 재실 → ${hm(at(iPeak))} 최고 ${n2(co2[iPeak])} ppm`,
+        `실내 기준 1,000 ppm (11주차 p.4)을 ${hm(at(iOver))}부터 넘음, 입실 약 ${Math.round((iOver - iStart) * MPS)}분 만`,
+        `퇴실 후 ${hm(at(NPTS - 1))}까지 ${n2(co2[NPTS - 1])} ppm으로 아주 천천히 감소`],
+      run() { reset({ info: true }); goOverview(); } },
+    { title: 'Case 1 · 증가형 (3명 재실)', body: [
+        '재실자가 내쉰 CO₂가 위로 올라가 방 전체로 섞임 — 완전혼합 가정 (11주차 p.14)',
+        '아래 틈(창틀·현관문)으로 외기 유입 = 침기, 위 틈·배관 관통부로 유출 = 누기 (10주차 p.12–13)',
+        '측정 시각이 재생되며 주황 점(CO₂)이 측정 농도만큼 늘어남'],
+      run() { reset({ flow: true }); goOverview(); setTime(iStart); playUntil = iPeak; setPlaying(true); } },
+    { title: 'Case 2 · 감소형 (무인)', body: [
+        '아무도 없으니 G = 0 → 틈새바람으로 들어온 외기에 희석되기만 함',
+        `창·문을 닫아 두면 아주 천천히 감소 → 감소 속도로 기밀성을 판단 (10주차 p.23)`,
+        `${hm(at(Q1.i0))} 문을 닫은 뒤부터 재생`],
+      run() { reset({ flow: true }); goOverview(); setTime(Q1.i0); playUntil = NPTS - 1; setPlaying(true); } },
+    { title: 'Q1 · 공기교환율 n과 침기량 Q', body: [
+        `0분 ${hm(at(Q1.i0))} ${n2(Q1.c0)} ppm, 60분 ${hm(at(Q1.i1))} ${n2(Q1.c1)} ppm (문 닫은 뒤 첫 값 기준, 11주차 p.30)`,
+        `n = ln[(${n2(Q1.c0)} − ${CO}) / (${n2(Q1.c1)} − ${CO})] / 1 h = ${Q1.n.toFixed(3)} 회/h → Q = n·V = ${Q1.Q.toFixed(1)} m³/h`,
+        `반감기 ${Q1.half.toFixed(1)} h · 신축 공동주택 기준 0.5 회/h의 ${Math.round(Q1.n / 0.5 * 100)}% 수준`],
+      run() { reset({ q: true }); goOverview(); setTimeout(() => scrollQ('q1Eq'), 60); } },
+    { title: 'Q2-1 · 계속 머물러도 1,000 ppm 이하가 되려면', body: [
+        `최고 ${n2(co2[iPeak])} ppm > 1,000 ppm → Q2-1 해당 · 정상상태 Css = Cᵢ + G/Q ≤ 1,000 ppm (11주차 p.20)`,
+        `G = 3명 × 0.018 = ${Q2.G.toFixed(3)} m³/h → Q ≥ ${Q2.G.toFixed(3)} / (580 × 10⁻⁶) = ${Q2.Qreq.toFixed(1)} m³/h`,
+        `n = ${Q2.nReq.toFixed(2)} 회/h · 1인당 ${Q2.perPerson.toFixed(1)} m³/h (강의 29–36) · 지금 침기량의 약 ${Math.round(Q2.ratio)}배`],
+      run() { reset({ q: true }); goOverview(); setTimeout(() => scrollQ('q2Eq'), 60); } },
+    { title: '계산기로 확인', body: [
+        `지금 틈새바람(n = ${Q1.n.toFixed(2)})이면 3명 1시간에 약 ${n2(Math.round(Math.max(...modelSeries(NOCC, Q1.n).filter(v => v != null))))} ppm`,
+        `'Q2 필요 환기' 버튼 → n = ${Q2.nReq.toFixed(2)}이면 1,000 ppm 아래에 머묾`,
+        `측정으로 거꾸로 구한 1인당 발생량 약 ${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h — 가정 18 L/h(p.24 Office Work)보다 조금 큼`],
+      run() { reset({ q: true }); goOverview(); setSim(NOCC, Q1.n); setTimeout(() => scrollQ('simChart'), 60); } },
+    { title: '정리', end: true, body: [
+        `창문과 문을 닫으면 틈새바람(${Q1.n.toFixed(2)} 회/h)만으로는 3명이 1시간 만에 ${n2(co2[iPeak])} ppm`,
+        `1,000 ppm을 지키려면 시간당 약 ${Math.round(Q2.Qreq)} m³의 외기 필요 → 창문 환기나 기계환기가 필요`,
+        'CO₂ 측정기 하나로 보이지 않는 환기량을 잴 수 있었음 (11주차 p.9)'],
+      run() { reset({ spin: true }); goOverview(); } },
+  ];
+  let cur = 0, free = false;
+  STEPS.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', `${i + 1}. ${s.title}`); b.addEventListener('click', () => show(i)); capDots.appendChild(b); });
+  function show(i) {
+    cur = Math.max(0, Math.min(STEPS.length - 1, i)); free = false;
+    const s = STEPS[cur];
+    document.body.classList.remove('pfree');
+    cover.hidden = !s.cover; cap.hidden = !!s.cover; resume.hidden = true;
+    capNo.textContent = `${cur + 1} / ${STEPS.length}`;
+    capTitle.textContent = s.title;
+    capBody.innerHTML = (s.body || []).map(t => `<li>${t}</li>`).join('');
+    document.getElementById('pend').hidden = !s.end;
+    [...capDots.children].forEach((b, j) => b.setAttribute('aria-current', j === cur ? 'step' : 'false'));
+    s.run();
+    applyViewOffset();
+  }
+  function goFree() { free = true; document.body.classList.add('pfree'); document.body.classList.remove('info-right'); cap.hidden = true; cover.hidden = true; resume.hidden = false; reset({}); infoHidden = false; syncSheets(); }
+  addEventListener('keydown', e => {
+    const t = e.target, typing = t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA');
+    const k = e.key;
+    if (k === 'Escape') { e.preventDefault(); free ? show(cur) : goFree(); return; }
+    if (typing && !(k === 'PageDown' || k === 'PageUp')) return;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(free ? cur : cur + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(free ? cur : cur - 1); }
+    else if (k === 'Home') { e.preventDefault(); show(0); }
+    else if (k === 'End') { e.preventDefault(); show(STEPS.length - 1); }
+  });
+  document.getElementById('pprev').addEventListener('click', () => show(cur - 1));
+  document.getElementById('pnext').addEventListener('click', () => show(cur + 1));
+  document.getElementById('pfreeBtn').addEventListener('click', goFree);
+  document.getElementById('pstart').addEventListener('click', () => show(1));
+  resume.addEventListener('click', () => show(cur));
+  window.__presentStart = () => { const h = parseInt(location.hash.replace('#', ''), 10); show(Number.isFinite(h) ? h - 1 : 0); };
+}
+
 /* ---------------- start ---------------- */
 const k0 = fitK();
 camera.position.set(5.0 * k0 * 1.25, 6.0 * k0 * 1.15, 6.4 * k0 * 1.25);
@@ -1914,8 +2066,7 @@ function route() {
   else if (h === 'sensor') goSensor();
   else { goOverview(); setSpin(!REDUCED); }
 }
-route();
-addEventListener('hashchange', route);
+if (PRESENT) window.__presentStart(); else { route(); addEventListener('hashchange', route); }
 document.getElementById('loading').style.display = 'none';
 requestAnimationFrame(frame);
 </script>
