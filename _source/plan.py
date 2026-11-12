@@ -36,12 +36,16 @@ rows = list(csv.reader((OUT.parent / "Co2 측정.csv").open(encoding="cp949")))[
 co2 = [int(float(r[2])) for r in rows if len(r) > 2 and r[2].strip()]
 N = len(co2); CO = L["outdoorCO2"]
 ip = co2.index(max(co2)); i0 = min(range(0, 40), key=lambda i: co2[i])
-xs = [(i - ip) / 60 for i in range(ip + 5, N)]; ys = [math.log(co2[i] - CO) for i in range(ip + 5, N)]
+# Q1 (11주차): 퇴실 때 문을 연 일시 하락 직후 첫 값 = 0분, 60분 뒤 값
+iq_dip = min(range(ip, min(N, ip + 9)), key=lambda i: co2[i]); q1_i0 = iq_dip + 1; q1_i1 = q1_i0 + 60
+n_q1 = math.log((co2[q1_i0] - CO) / (co2[q1_i1] - CO))
+xs = [(i - q1_i0) / 60 for i in range(q1_i0, N)]; ys = [math.log(co2[i] - CO) for i in range(q1_i0, N)]
 mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
 b = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sum((x - mx) ** 2 for x in xs)
 a0 = my - b * mx
 r2 = 1 - sum((y - (a0 + b * x)) ** 2 for x, y in zip(xs, ys)) / sum((y - my) ** 2 for y in ys)
-n_ach = -b
+n_reg = -b
+n_ach = n_q1
 
 
 def poly_area(p):
@@ -53,6 +57,7 @@ AREA = poly_area(L["floor"]) - (wd["x1"] - wd["x0"]) * (wd["z1"] - wd["z0"])
 VOL = AREA * H
 gen = [VOL * ((co2[i + 3] - co2[i - 3]) / 6 * 60 * 1e-6 + n_ach * (co2[i] - CO) * 1e-6) for i in range(i0 + 5, ip - 3)]
 GEN = sum(gen) / len(gen)
+gen_q1 = GEN / 3
 
 
 # ---------------- base plan drawing ----------------
@@ -327,13 +332,13 @@ for k, (c, a_, b_) in enumerate(leg):
     ftext(fig2, tx0 + 11, y - 1, a_, fontsize=6.6, color=INK, va="top", fontweight="bold")
     ftext(fig2, tx0 + 11, y + 2.6, b_, fontsize=5.8, color=MUTED, va="top")
 ny = 80
-ftext(fig2, tx0, ny, "감소형(Case 2) 구간 분석", fontsize=7.5, fontweight="bold", color=INK, va="top")
+ftext(fig2, tx0, ny, "감소형(Case 2) 구간 · Q1", fontsize=7.5, fontweight="bold", color=INK, va="top")
 ftext(fig2, tx0, ny + 6, r"$C(t) = C_o + (C_0 - C_o)\,e^{-n\,t}$", fontsize=8, color=DIM, va="top")
 nums = [
-    (f"{n_ach:.2f} 회/h", f"환기횟수 n (R² {r2:.3f})"),
-    (f"{n_ach * VOL:.1f} m³/h", "틈새 환기량 Q = n·V"),
+    (f"{n_ach:.2f} 회/h", f"공기교환율 n (회귀 {n_reg:.2f}, R² {r2:.3f})"),
+    (f"{n_ach * VOL:.1f} m³/h", "침기량 Q = n·V"),
     (f"{GEN / 3 * 1000:.0f} L/h", "1인당 CO₂ 발생량 (증가형 물질수지)"),
-    (f"약 {n_ach * 20:.1f} 회/h", "ACH50 개략 (n × 20 경험식)"),
+    (f"{math.log(2) / n_ach:.1f} h", "초과농도 반감기 0.693/n"),
 ]
 for k, (v, l) in enumerate(nums):
     y = ny + 13 + k * 10
@@ -369,20 +374,26 @@ npl = H / 2
 sx.plot([0, D], [npl, npl], color=DIM, lw=0.7, ls=(0, (5, 3)))
 sx.text(D / 2 + 0.6, npl + 0.05, f"중성대 (NPL, 추정 H/2 약 {npl:.2f} m)", fontsize=6.2, color=DIM, ha="center", va="bottom")
 sx.text(2.9, 1.75, "실내압 > 외부  →  위쪽 틈으로 누기", fontsize=6.0, color=C_OUT, ha="center")
-sx.text(2.9, 0.42, "실내압 < 외부  →  아래쪽 틈으로 침기", fontsize=6.0, color=C_IN, ha="center")
+sx.text(1.75, 0.42, "실내압 < 외부  →  아래쪽 틈으로 침기", fontsize=6.0, color=C_IN, ha="center")
 # occupants (projected) + plumes
 for o in L["occupants"]:
     hz, hy = o["z"], o["seat"] + 0.72
     sx.add_patch(Circle((hz, hy), 0.09, fc="#e3d9cc", ec=FUR, lw=0.5, zorder=5))
     sx.add_patch(FancyBboxPatch((hz - 0.1, o["seat"]), 0.2, 0.5, boxstyle="round,pad=0.03", fc="#e3d9cc", ec=FUR, lw=0.5, zorder=5))
     sx.text(hz, o["seat"] + 0.3, o["name"], fontsize=5.6, ha="center", va="center", color=FUR, zorder=6)
-    flow_arrow(sx, [(hz, hy + 0.12), (hz, H - 0.05), (hz - 0.6, H - 0.08)], C_PL, lw=1.0, section=True)
+    dz_ = -0.6 if hz < 3.2 else 0.6   # 창 쪽 셀은 창으로, 현관 쪽 셀은 현관으로
+    flow_arrow(sx, [(hz, hy + 0.12), (hz, H - 0.05), (hz + dz_, H - 0.08)], C_PL, lw=1.0, section=True)
 # leakage arrows through the cracks
 flow_arrow(sx, [(-0.7, 0.93), (-0.05, 0.93), (0.6, 0.55)], C_IN, section=True)
 flow_arrow(sx, [(0.8, 1.6), (0.1, 1.97), (-0.7, 1.97)], C_OUT, section=True)
 flow_arrow(sx, [(D + 0.5, 0.03), (D - 0.05, 0.03), (D - 0.9, 0.12)], C_IN, section=True)
 flow_arrow(sx, [(D - 0.8, 1.65), (D - 0.05, 1.99), (D + 0.5, 1.99)], C_OUT, section=True)
 flow_arrow(sx, [(0.12, 1.9), (0.08, 0.9), (0.4, 0.12)], C_CO, lw=1.0, section=True)
+flow_arrow(sx, [(0.9, 0.12), (2.0, 0.06), (2.95, 0.15)], C_CO, lw=1.0, section=True)
+flow_arrow(sx, [(D - 0.1, 1.6), (D - 0.08, 0.6), (D - 0.5, 0.1)], C_CO, lw=1.0, section=True)
+flow_arrow(sx, [(D - 0.9, 0.08), (4.0, 0.06), (3.45, 0.15)], C_CO, lw=1.0, section=True)
+flow_arrow(sx, [(3.2, 0.25), (3.25, 1.2), (3.2, H - 0.08)], C_PL, lw=1.0, section=True)
+sx.text(3.2, 0.28, "두 셀이 만나 상승", fontsize=5.6, color=C_PL, ha="left", va="bottom")
 # sensor (projected from x = 2.23 m)
 sx.add_patch(Circle((S["z"], S["y"]), 0.07, fc=SIG, ec="white", lw=0.5, zorder=8))
 sx.add_patch(Rectangle((I["rack"]["z0"], 0), I["rack"]["z1"] - I["rack"]["z0"], 0.955, fc="none", ec="#9aa0a6", lw=0.5, ls=(0, (2, 1.5))))
@@ -408,7 +419,7 @@ pp.text(0.55, H * 0.92, "+ΔP", fontsize=6, color=C_OUT, ha="center")
 pp.text(-0.55, H * 0.06, "-ΔP", fontsize=6, color=C_IN, ha="center")
 pp.text(0, -0.08, "실내-실외\n압력차", fontsize=5.6, color=MUTED, ha="center", va="top", linespacing=1.3)
 ftext(fig2, 14, sec_top + sh + 8, "· 11월 저녁 측정: 실내 18.5–19.6 °C > 외기 → 따뜻한 실내 공기가 위로 올라가 상부 틈으로 빠지고(누기), 하부 틈으로 외기가 들어온다(침기).", fontsize=6, color=INK, va="top")
-ftext(fig2, 14, sec_top + sh + 13, "· Case 1에서는 재실자 날숨(CO₂)이 상승기류를 타고 천장 쪽에 퍼진 뒤 섞이며, 누기 경로로 CO₂가 함께 빠져나간다.", fontsize=6, color=INK, va="top")
+ftext(fig2, 14, sec_top + sh + 13, "· 실내는 차가운 창·현관 쪽에서 내려온 공기가 바닥을 따라 가운데로 모여 올라가는 2셀 대류로 섞인다(완전혼합 가정의 근거). Case 1에서는 날숨이 천장으로 올라가 퍼진다.", fontsize=6, color=INK, va="top")
 ftext(fig2, 14, sec_top + sh + 18, "· Case 2에서는 발생원이 없으므로 침기·누기에 의한 희석만으로 농도가 지수적으로 감소하며, 그 감소 속도가 기밀성(n)을 나타낸다.", fontsize=6, color=INK, va="top")
 ftext(fig2, 14, sec_top + sh + 23, "· 화장실 배기구와 주방 후드 덕트는 수직 덕트의 굴뚝효과로 약한 흡인(부압)이 생긴다고 가정했다. 모든 경로는 측정값이 아닌 추정이다.", fontsize=6, color=INK, va="top")
 title_block(fig2, 14, PAGE_W - 28, 264, [
@@ -416,8 +427,84 @@ title_block(fig2, 14, PAGE_W - 28, 264, [
     ("도면", "틈새바람 추정도", "비고", "경로는 압력차 원리에 따른 추정, 측정값 아님", "작성일", "2026.11.11", "도면번호", "A-02"),
 ])
 
+
+# =============== PAGE 3: 11주차 과제 Q1 · Q2 ===============
+fig3 = plt.figure(figsize=(PAGE_W * MM, PAGE_H * MM))
+header(fig3, 14, "11주차 과제 Q1 · Q2 — 우리 방 계측 데이터 활용", "가정: 외기 CO₂ 420 ppm · 재실자 1명당 CO₂ 발생량 0.018 m³/h · Build-up 때 침기량 = Q1 · 완전혼합", "A-03")
+hm_ = lambda i: rows[i][0][11:16]
+LX = 14
+# ---- Q1 ----
+ftext(fig3, LX, 30, "Q1.  Decay 데이터로 공기교환율 n과 침기량 Q", fontsize=10, fontweight="bold", color=INK, va="top")
+ftext(fig3, LX, 37, f"퇴실하며 문을 연 {hm_(ip + 1)}–{hm_(iq_dip)}의 일시 하락 뒤, 문을 닫은 뒤 첫 값을 0분으로 했다.", fontsize=7, color=MUTED, va="top")
+q1rows = [("0분 (문 닫은 뒤 첫 값)", f"{hm_(q1_i0)}", f"{co2[q1_i0]:,} ppm"), ("60분 뒤", f"{hm_(q1_i1)}", f"{co2[q1_i1]:,} ppm"), ("외기 Ci", "가정", f"{CO} ppm"), ("실 체적 V", "실측 치수", f"{VOL:.1f} m³")]
+for k, (a_, b_, c_) in enumerate(q1rows):
+    y = 45 + k * 5.2
+    ftext(fig3, LX, y, a_, fontsize=7.4, color=MUTED, va="top"); ftext(fig3, LX + 42, y, b_, fontsize=7.4, color=INK, va="top"); ftext(fig3, LX + 64, y, c_, fontsize=7.4, color=INK, va="top", fontweight="bold")
+ftext(fig3, LX, 69, r"$n = \frac{1}{t}\,\ln\frac{C_0 - C_i}{C(t) - C_i}$" + f"  =  ln[({co2[q1_i0]:,} - {CO}) / ({co2[q1_i1]:,} - {CO})] / 1 h  =  {n_ach:.3f} 회/h", fontsize=8.6, color=DIM, va="top")
+ftext(fig3, LX, 79, f"Q = n · V = {n_ach:.3f} × {VOL:.1f} = {n_ach * VOL:.1f} m³/h", fontsize=8.6, color=DIM, va="top")
+res1 = [(f"{n_ach:.2f} 회/h", "공기교환율 n"), (f"{n_ach * VOL:.1f} m³/h", "침기량 Q"), (f"{1 / n_ach:.1f} h", "시정수 τ = 1/n"), (f"{math.log(2) / n_ach:.1f} h", "반감기 = 0.693/n")]
+for k, (v, l) in enumerate(res1):
+    x = LX + k * 46
+    ftext(fig3, x, 88, v, fontsize=12, color=INK, va="top", fontweight="bold"); ftext(fig3, x, 95, l, fontsize=6.8, color=MUTED, va="top")
+ftext(fig3, LX, 102, f"검증: 감소 구간 전체를 지수 감쇠로 회귀하면 n = {n_reg:.3f} 회/h (R² {r2:.3f}). 신축 공동주택 기준 0.5 회/h의 {n_ach / 0.5 * 100:.0f}% 수준으로, 창·문을 닫으면 틈새바람만으로는 환기가 매우 적다.", fontsize=6.8, color=INK, va="top")
+# decay chart
+cax = fig3.add_axes([LX / PAGE_W, 1 - 152 / PAGE_H, 120 / PAGE_W, 42 / PAGE_H])
+a_ = ip - 6
+tt = [(i - q1_i0) for i in range(a_, N)]
+cax.plot(tt, co2[a_:], color=SIG, lw=1.3, label="측정")
+cax.plot([i - q1_i0 for i in range(q1_i0, N)], [CO + (co2[q1_i0] - CO) * math.exp(-n_ach * (i - q1_i0) / 60) for i in range(q1_i0, N)], color=DIM, lw=1.1, ls=(0, (4, 2)), label=f"C(t) = Cᵢ + (C₀ - Cᵢ)e^(-nt), n = {n_ach:.2f}".replace("ᵢ", "i").replace("₀", "0").replace("-", "-"))
+cax.axvspan(0, 60, color=DIM, alpha=0.07)
+for i, lab in ((q1_i0, "0분"), (q1_i1, "60분")):
+    cax.plot([i - q1_i0], [co2[i]], "o", color=SIG, ms=4); cax.annotate(f"{lab} {co2[i]:,}", (i - q1_i0, co2[i]), xytext=(4, 6), textcoords="offset points", fontsize=6.5, color=INK)
+cax.set_xlabel("0분 기준 경과 시간 [분]", fontsize=6.5); cax.set_ylabel("CO₂ [ppm]", fontsize=6.5); cax.tick_params(labelsize=6)
+cax.grid(alpha=0.25, lw=0.5); cax.legend(fontsize=6, frameon=False, loc="upper right")
+for sp_ in ("top", "right"):
+    cax.spines[sp_].set_visible(False)
+# ---- Q2 ----
+G_ = 3 * 0.018; Qreq = G_ / ((1000 - CO) * 1e-6); nreq = Qreq / VOL; css_now = CO + G_ / (n_ach * VOL) * 1e6
+ftext(fig3, LX, 162, "Q2-1.  Build-up에서 1,000 ppm을 넘었으므로: 계속 머물러도 1,000 ppm 이하가 되려면", fontsize=10, fontweight="bold", color=INK, va="top")
+ftext(fig3, LX, 169, f"측정 최고 {co2[ip]:,} ppm ({hm_(ip)}) > 1,000 ppm → Q2-1 해당. 정상상태에서는 들어오고 나가는 CO₂가 같아진다 (V·dC/dt = 0).", fontsize=7, color=MUTED, va="top")
+ftext(fig3, LX, 177, r"$C_{ss} = C_i + \frac{G}{Q} \leq 1000\ \mathrm{ppm}\quad\Rightarrow\quad Q \geq \frac{G}{(1000 - C_i)\times 10^{-6}}$", fontsize=9, color=DIM, va="top")
+ftext(fig3, LX, 189, f"G = 3명 × 0.018 = {G_:.3f} m³/h   →   Q ≥ {G_:.3f} / {(1000 - CO) * 1e-6:.6f} = {Qreq:.1f} m³/h", fontsize=8.6, color=DIM, va="top")
+res2 = [(f"{Qreq:.1f} m³/h", "필요 환기량 Q"), (f"{nreq:.2f} 회/h", "필요 환기횟수 n = Q/V"), (f"{Qreq / 3:.1f} m³/h·인", "1인당 (강의 기준 29–36)"), (f"약 {Qreq / (n_ach * VOL):.0f}배", f"현재 침기량 {n_ach * VOL:.1f} m³/h 대비")]
+for k, (v, l) in enumerate(res2):
+    x = LX + k * 46
+    ftext(fig3, x, 198, v, fontsize=12, color=INK, va="top", fontweight="bold"); ftext(fig3, x, 205, l, fontsize=6.8, color=MUTED, va="top")
+nmin = next((k for k in range(1, 60) if (k * 0.018 / (n_ach * VOL) * (1 - math.exp(-n_ach)) * 1e6 + (co2[i0] - CO) * math.exp(-n_ach) + CO) > 1000), None)
+ftext(fig3, LX, 213, f"· 지금처럼 틈새바람(Q1)만 있을 때 3명이 계속 머물면 정상상태 농도는 {CO} + {G_:.3f}/{n_ach * VOL:.2f}×10^6 약 {css_now:,.0f} ppm까지 오른다 (시정수 {1 / n_ach:.1f} h라 실제로는 서서히).", fontsize=6.8, color=INK, va="top")
+ftext(fig3, LX, 218, f"· 참고 (Q2-2 방식): 같은 시작 농도 {co2[i0]:,} ppm에서 1시간 머물 때, {nmin}명만 있어도 1시간 뒤 1,000 ppm을 넘는다.", fontsize=6.8, color=INK, va="top")
+# model check chart
+def model(Nn, n):
+    out = [None] * N; G = Nn * 0.018; occ = ip - i0; ce = co2[i0]
+    for i in range(i0, N):
+        t = (i - i0) / 60
+        if i - i0 <= occ:
+            out[i] = G / (n * VOL) * (1 - math.exp(-n * t)) * 1e6 + (co2[i0] - CO) * math.exp(-n * t) + CO; ce = out[i]
+        else:
+            out[i] = (ce - CO) * math.exp(-n * (i - i0 - occ) / 60) + CO
+    return out
+m1 = model(3, n_ach); m2 = model(3, nreq)
+mx_ = fig3.add_axes([LX / PAGE_W, 1 - 258 / PAGE_H, 120 / PAGE_W, 32 / PAGE_H])
+xx_ = list(range(N))
+mx_.plot(xx_, co2, color=SIG, lw=1.2, label="측정")
+mx_.plot(xx_[i0:], m1[i0:], color=DIM, lw=1.2, label=f"11주차 식, n = {n_ach:.2f} (Q1)")
+mx_.plot(xx_[i0:], m2[i0:], color="#2f9e6b", lw=1.2, ls=(0, (4, 2)), label=f"11주차 식, n = {nreq:.2f} (Q2 필요 환기)")
+mx_.axhline(1000, color=DIM, lw=0.6, ls=":"); mx_.text(N - 2, 1030, "1,000 ppm", fontsize=6, color=DIM, ha="right")
+mx_.set_xticks([i for i in range(N) if rows[i][0][14:16] == "00"]); mx_.set_xticklabels([rows[i][0][11:16] for i in range(N) if rows[i][0][14:16] == "00"], fontsize=6)
+mx_.tick_params(labelsize=6); mx_.set_ylabel("CO₂ [ppm]", fontsize=6.5); mx_.grid(alpha=0.25, lw=0.5); mx_.legend(fontsize=6, frameon=False, loc="lower right")
+for sp_ in ("top", "right"):
+    mx_.spines[sp_].set_visible(False)
+rmse = math.sqrt(sum((m1[i] - co2[i]) ** 2 for i in range(i0, N)) / (N - i0))
+ftext(fig3, LX + 126, 224, "모델 확인", fontsize=8, fontweight="bold", color=INK, va="top")
+ftext(fig3, LX + 126, 230, f"n = {n_ach:.2f}, 3명 × 0.018로 계산한\n최고 {max(v for v in m1 if v):,.0f} ppm (측정 {co2[ip]:,}), RMSE {rmse:.0f}\n측정 역산 1인당 발생량 약 {gen_q1 * 1000:.0f} L/h\n→ 가정값 18 L/h보다 조금 큼\nn = {nreq:.2f}이면 3명이어도 1,000 이하", fontsize=6.4, color=INK, va="top", linespacing=1.5)
+title_block(fig3, 14, PAGE_W - 28, 264, [
+    ("과목", "환경설비실험", "과제", "11주차 계측 데이터 활용 Q1 · Q2", "식", "11주차 CO₂ 농도 계산식", "단위", "ppm, m³/h"),
+    ("도면", "Q1 · Q2 계산", "비고", "외기 420 ppm, 1인 0.018 m³/h 가정", "작성일", "2026.11.12", "번호", "A-03"),
+])
+
 with PdfPages(OUT / "자취방_평면도.pdf") as pdf:
-    pdf.savefig(fig1); pdf.savefig(fig2)
+    pdf.savefig(fig1); pdf.savefig(fig2); pdf.savefig(fig3)
+fig3.savefig(OUT / "자취방_Q1Q2.png", dpi=220)
 fig1.savefig(OUT / "자취방_평면도.png", dpi=220)
 fig2.savefig(OUT / "자취방_공기흐름도.png", dpi=220)
 print(f"saved; area {AREA:.2f} m2, volume {VOL:.2f} m3, n {n_ach:.3f}/h, R2 {r2:.4f}, Q {n_ach * VOL:.2f}, G/person {GEN / 3 * 1000:.1f} L/h")

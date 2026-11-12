@@ -95,6 +95,10 @@ svg.chart { width: 100%; height: auto; display: block; }
 .chart .peak { fill: var(--fg); font-size: 10px; font-family: var(--font-mono); font-weight: 500; }
 .chart .cursor { stroke: var(--fg); stroke-width: 1; }
 .chart .cursordot { fill: var(--fg); }
+.chart .meas { fill: none; stroke: var(--signal); stroke-width: 1.4; opacity: .8; stroke-linejoin: round; }
+.chart .mdl { fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+i.sw { display: inline-block; width: 14px; height: 0; border-top: 2px solid; vertical-align: 3px; margin: 0 4px 0 2px; }
+i.sw.meas { border-color: var(--signal); } i.sw.mdl { border-color: var(--ink); margin-left: 10px; }
 .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .stat { border-top: 1px solid var(--line); padding-top: 6px; min-width: 0; }
 .stat b { display: block; font-family: var(--font-mono); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -106,7 +110,7 @@ svg.chart { width: 100%; height: auto; display: block; }
   position: fixed; z-index: 5; width: 340px;
   left: calc(16px + env(safe-area-inset-left, 0px));
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  max-height: calc(100% - 230px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100% - 248px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   overflow: auto; padding: 14px 16px 14px; display: grid; gap: 11px;
 }
 .now { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -129,6 +133,26 @@ svg.chart { width: 100%; height: auto; display: block; }
 .legend .out { background: var(--air-out); color: var(--air-out); }
 .legend .plume { background: var(--air-plume); color: var(--air-plume); }
 .legend .cold { background: var(--air-cold); color: var(--air-cold); }
+.legend .mix { background: var(--muted); color: var(--muted); }
+.qsheet { width: 390px; }
+.qcard { border-top: 1px solid var(--line); padding-top: 11px; display: grid; gap: 9px; }
+.qhead { display: flex; gap: 8px; align-items: baseline; }
+.qhead b { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.qno { flex: none; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; color: var(--paper); background: var(--ink); border-radius: 4px; padding: 1px 6px; }
+.pick { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+select { font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--sheet); color: var(--fg); }
+.eqb { font-family: var(--font-mono); font-size: 11px; line-height: 1.7; color: var(--ink); background: var(--band); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: nowrap; }
+.eqb b { color: var(--fg); font-weight: 500; }
+.eqb sub, .eqb sup { font-size: 8.5px; }
+.answer { margin: 0; font-size: 13px; line-height: 1.55; }
+.answer b { color: var(--signal); font-weight: 600; }
+.ctl { display: grid; grid-template-columns: 64px 1fr 64px; gap: 8px; align-items: center; font-size: 12.5px; }
+.ctl input { min-width: 0; accent-color: var(--ink); }
+.ctl output { font-family: var(--font-mono); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { border: 1px solid var(--line); padding: 5px 9px; font-size: 12px; }
+#qBtn { border-color: var(--ink); color: var(--ink); font-weight: 500; }
+#qBtn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .calc { border-top: 1px solid var(--line); padding-top: 9px; display: grid; gap: 7px; }
 .calc .eq { font-family: var(--font-mono); font-size: 12px; color: var(--ink); overflow-x: auto; white-space: nowrap; }
 .calc .eq sub, .calc .eq sup { font-size: 9px; }
@@ -186,6 +210,8 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
 .flowlbl.out { color: var(--air-out); }
 .flowlbl.npl { color: var(--ink); border-style: dashed; }
 .flowlbl.occ { color: var(--fg); border-color: var(--line); font-weight: 400; }
+.flowlbl.cold { color: var(--air-cold); border-style: dotted; font-weight: 400; }
+.flowlbl.plume { color: var(--air-plume); border-style: dotted; font-weight: 400; }
 .sensorlbl {
   display: grid; gap: 2px; padding: 7px 10px 8px; border-radius: 7px; white-space: nowrap;
   background: var(--signal); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.18); transform: translateY(-10px);
@@ -205,6 +231,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
 
 @media (max-width: 1100px) {
   .flow { width: 300px; }
+  .qsheet { width: 340px; }
   .panel { width: 300px; }
 }
 @media (max-width: 760px) {
@@ -249,7 +276,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
     <svg class="chart" id="chart" viewBox="0 0 320 150" role="img" aria-label="CO2 농도 시계열 그래프"></svg>
   </figure>
   <div class="stats" id="stats"></div>
-  <p class="note">가로·세로·천장고·주방 폭은 실측값이고, 가구 크기와 주방 깊이는 사진을 보고 추정했습니다. 점선은 감소 구간에 맞춘 지수 감쇠 곡선입니다.</p>
+  <p class="note" id="chartNote"></p>
 </aside>
 
 <aside class="flow sheet" id="flow" aria-label="공기 흐름 추정" hidden>
@@ -267,16 +294,59 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
     <button type="button" id="case2Btn" aria-pressed="false">Case 2 · 감소형<small>무인, 개구부 폐쇄</small></button>
   </div>
   <ul class="legend">
-    <li><i class="in"></i><span>침기 <small>외부·복도 공기가 틈새로 들어옴 (중성대 아래)</small></span></li>
-    <li><i class="out"></i><span>누기 <small>CO₂가 섞인 실내 공기가 틈새로 빠져나감 (중성대 위)</small></span></li>
-    <li><i class="plume"></i><span>호기 상승기류 · 실내 확산 <small>재실자가 내쉰 따뜻한 공기가 위로 올라가 퍼짐</small></span></li>
-    <li><i class="cold"></i><span>창 주변 하강 냉기류 <small>차가운 창 표면에서 식은 공기가 바닥으로 내려옴</small></span></li>
+    <li><i class="in"></i><span>침기 <small>중성대 아래 틈으로 들어온 찬 외기·복도 공기, 무거워서 바닥으로 깔림</small></span></li>
+    <li><i class="out"></i><span>누기 <small>중성대 위 틈과 배기 덕트로 CO₂가 섞인 실내 공기가 빠져나감</small></span></li>
+    <li><i class="plume"></i><span>상승기류 · 천장 기류 <small>방 가운데·재실자·냉장고 위에서 올라가 천장을 따라 창과 현관 쪽으로</small></span></li>
+    <li><i class="cold"></i><span>하강 냉기류 · 바닥 기류 <small>차가운 창·현관문 쪽에서 식은 공기가 내려와 바닥을 따라 방 가운데로 모임</small></span></li>
+    <li><i class="mix"></i><span>측정기로 <small>섞인 실내 공기가 측정 높이 0.65 m로 들어옴</small></span></li>
   </ul>
+  <p class="note">점 하나하나가 CO₂(주황)와 틈으로 들어온 외기(파랑)입니다. 주황 점의 수는 그 시각의 측정 농도에 맞춰지고, 재생하면 재실자 입에서 생겨 틈으로 빠져나갑니다. 기류는 실제(약 0.05–0.2 m/s)보다 2.4배 빠르게 보여 줍니다.</p>
   <div class="calc">
-    <div class="eq">C(t) = C<sub>o</sub> + (C<sub>0</sub> − C<sub>o</sub>)·e<sup>−n·t</sup></div>
+    <div class="eq">C(t) = G/(nV)·(1 − e<sup>−nt</sup>) + (C<sub>0</sub> − C<sub>i</sub>)·e<sup>−nt</sup> + C<sub>i</sub></div>
     <div class="stats" id="flowStats"></div>
     <p class="note" id="flowNote"></p>
   </div>
+</aside>
+
+<aside class="flow sheet qsheet" id="qsheet" aria-label="Q1 Q2 계산" hidden>
+  <div>
+    <div class="eyebrow">11주차 과제 · 계측 데이터 활용</div>
+    <h2>Q1 · Q2 우리 방 계산</h2>
+  </div>
+  <p class="note">가정: 외기 CO₂ 420 ppm · 재실자 1명당 CO₂ 발생량 0.018 m³/h · Build-up 때 침기량 = Q1 값 · 완전혼합</p>
+  <section class="qcard">
+    <div class="qhead"><span class="qno">Q1</span><b>Decay 데이터로 공기교환율 n과 침기량 Q</b></div>
+    <label class="pick" for="q1Start">0분 값 (문을 닫은 뒤 첫 값)
+      <select id="q1Start"></select>
+    </label>
+    <div class="stats" id="q1Pair"></div>
+    <div class="eqb" id="q1Eq"></div>
+    <svg class="chart" id="q1Chart" viewBox="0 0 320 130" role="img" aria-label="감소 구간 그래프"></svg>
+    <div class="stats" id="q1Stats"></div>
+    <p class="note" id="q1Note"></p>
+  </section>
+  <section class="qcard">
+    <div class="qhead"><span class="qno">Q2</span><b>계속 머물러도 1,000 ppm 이하가 되려면</b></div>
+    <p class="answer" id="q2Head"></p>
+    <div class="eqb" id="q2Eq"></div>
+    <div class="stats" id="q2Stats"></div>
+    <p class="note" id="q2Note"></p>
+  </section>
+  <section class="qcard">
+    <div class="qhead"><span class="qno">계산</span><b>인원과 환기횟수를 바꿔 보기</b></div>
+    <div class="ctl"><label for="simN">재실 인원</label><input type="range" id="simN" min="0" max="6" step="1" value="3"><output id="simNv"></output></div>
+    <div class="ctl"><label for="simn">환기횟수</label><input type="range" id="simn" min="0" max="100" step="1" value="30"><output id="simnv"></output></div>
+    <div class="presets">
+      <button type="button" id="simQ1">Q1 측정값</button>
+      <button type="button" id="simQ2">Q2 필요 환기</button>
+      <button type="button" id="simStd">신축 기준 0.5 회/h</button>
+    </div>
+    <figure>
+      <figcaption><span><i class="sw meas"></i>측정 <i class="sw mdl"></i>11주차 식 계산</span><span>재실 시간은 측정과 같게</span></figcaption>
+      <svg class="chart" id="simChart" viewBox="0 0 320 140" role="img" aria-label="계산 결과 그래프"></svg>
+    </figure>
+    <div class="stats" id="simStats"></div>
+  </section>
 </aside>
 
 <div class="hud sheet" id="hud" hidden>
@@ -295,6 +365,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
   <div class="divider"></div>
   <div class="seg" role="group" aria-label="표시">
     <button type="button" id="flowBtn" aria-pressed="false">공기 흐름 보기</button>
+    <button type="button" id="qBtn" aria-pressed="false">Q1·Q2 계산</button>
     <button type="button" class="tog" id="tLabels" aria-pressed="true">이름표</button>
     <button type="button" class="tog" id="tDims" aria-pressed="true">치수</button>
     <button type="button" class="tog" id="tSpin" aria-pressed="true">자동 회전</button>
@@ -1126,85 +1197,124 @@ dim([K.x0 - T, K.z1], [K.x0 - T, R.d], [-O, 0], mm(R.d - K.z1));
   const o = new CSS2DObject(el); o.position.set(p.x, H / 2, p.z); dims.add(o); dimLabels.push(o);
 }
 
-/* ---------------- data analysis (shared by panels and airflow) ---------------- */
+/* ---------------- data analysis (10·11주차 방법) ---------------- */
 const co2 = DATA.co2, NPTS = co2.length, CO = L.outdoorCO2;
+const GP = L.co2PerPerson ?? 0.018;            // 재실자 1명당 CO2 발생량 [m³/h·인] (11주차 가정)
+const NOCC = L.occupants.length;
+const MPS = DATA.step / 60;                     // minutes per sample
 const t0 = new Date(DATA.start.replace(' ', 'T'));
 const at = i => new Date(t0.getTime() + i * DATA.step * 1000);
 const hm = d => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 const iPeak = co2.indexOf(Math.max(...co2));
 let iStart = 0; for (let i = 0; i < Math.min(40, NPTS); i++) if (co2[i] < co2[iStart]) iStart = i;
+// 퇴실하며 문을 연 순간 농도가 잠깐 떨어진다 → 그 직후 첫 값을 Q1의 0분 값으로 쓴다
+let iDip = iPeak; for (let i = iPeak; i <= Math.min(NPTS - 1, iPeak + 8); i++) if (co2[i] < co2[iDip]) iDip = i;
+const Q1_DEFAULT = Math.min(NPTS - 1 - Math.round(60 / MPS), iDip + 1);
 function polyArea(p) { let a = 0; for (let i = 0; i < p.length; i++) { const [x1, z1] = p[i], [x2, z2] = p[(i + 1) % p.length]; a += x1 * z2 - x2 * z1; } return Math.abs(a) / 2; }
 const wd = I.wardrobe;
 const AREA = polyArea(L.floor) - (wd.x1 - wd.x0) * (wd.z1 - wd.z0);
 const VOL = AREA * H;
+// Q1: two-point decay  n = (1/t)·ln[(C0 − Ci)/(C(t) − Ci)]
+function q1At(i0) {
+  const i1 = Math.min(NPTS - 1, i0 + Math.round(60 / MPS)), th = (i1 - i0) * MPS / 60;
+  const n = Math.log((co2[i0] - CO) / (co2[i1] - CO)) / th;
+  return { i0, i1, c0: co2[i0], c1: co2[i1], th, n, Q: n * VOL, tau: 1 / n, half: Math.LN2 / n };
+}
+let Q1 = q1At(Q1_DEFAULT);
+// cross-check: log-linear regression over the whole decay
 const fit = (() => {
-  const a = iPeak + 5, xsF = [], ysF = [];
-  for (let i = a; i < NPTS; i++) { xsF.push((i - iPeak) * DATA.step / 3600); ysF.push(Math.log(co2[i] - CO)); }
+  const xsF = [], ysF = [];
+  for (let i = Q1_DEFAULT; i < NPTS; i++) { xsF.push((i - Q1_DEFAULT) * MPS / 60); ysF.push(Math.log(co2[i] - CO)); }
   const mx = xsF.reduce((s, v) => s + v, 0) / xsF.length, my = ysF.reduce((s, v) => s + v, 0) / ysF.length;
   let sxy = 0, sxx = 0, syy = 0; xsF.forEach((x, k) => { sxy += (x - mx) * (ysF[k] - my); sxx += (x - mx) ** 2; syy += (ysF[k] - my) ** 2; });
   const b = sxy / sxx, a0 = my - b * mx, res = xsF.reduce((s, x, k) => s + (ysF[k] - (a0 + b * x)) ** 2, 0);
-  return { n: -b, C0: CO + Math.exp(a0), r2: 1 - res / syy };
+  return { n: -b, r2: 1 - res / syy };
 })();
-const GEN = (() => {
-  const g = [];
-  for (let i = iStart + 5; i < iPeak - 3; i++) {
-    const dCdt = (co2[i + 3] - co2[i - 3]) / 6 * (3600 / DATA.step) * 1e-6;
-    g.push(VOL * (dCdt + fit.n * (co2[i] - CO) * 1e-6));
+// 11주차 CO2 농도 계산식  C(t) = G/(nV)·(1 − e^−nt) + (C0 − Ci)·e^−nt + Ci
+function cModel(C0, G, n, th) { return G / (n * VOL) * (1 - Math.exp(-n * th)) * 1e6 + (C0 - CO) * Math.exp(-n * th) + CO; }
+// N people from the start of Case 1 for occMin minutes, then nobody (same timeline as the measurement)
+function modelSeries(N, n, occMin = (iPeak - iStart) * MPS) {
+  const out = new Array(NPTS).fill(null); const G = N * GP; let Cend = co2[iStart];
+  for (let i = iStart; i < NPTS; i++) {
+    const tm = (i - iStart) * MPS;
+    if (tm <= occMin) { out[i] = cModel(co2[iStart], G, n, tm / 60); Cend = out[i]; }
+    else out[i] = cModel(Cend, 0, n, (tm - occMin) / 60);
   }
-  return g.reduce((s, v) => s + v, 0) / g.length;
-})();
+  return out;
+}
+// per-person CO2 generation back-calculated from the build-up (mass balance with n)
+function measuredGen(n) {
+  const g = [];
+  for (let i = iStart + 5; i < iPeak - 3; i++) { const dCdt = (co2[i + 3] - co2[i - 3]) / 6 * (60 / MPS) * 1e-6; g.push(VOL * (dCdt + n * (co2[i] - CO) * 1e-6)); }
+  return g.reduce((s, v) => s + v, 0) / g.length / NOCC;
+}
+function q2() {
+  const G = NOCC * GP, Qreq = G / ((1000 - CO) * 1e-6);
+  const exceeded = co2.slice(iStart, iPeak + 1).some(v => v > 1000);
+  let Nmin = null; for (let N = 1; N <= 60; N++) if (cModel(co2[iStart], N * GP, Q1.n, 1) > 1000) { Nmin = N; break; }
+  return { G, Qreq, nReq: Qreq / VOL, perPerson: Qreq / NOCC, ratio: Qreq / Q1.Q, cssNow: CO + G / Q1.Q * 1e6, exceeded, Nmin };
+}
 
 /* ---------------- airflow (CO2 movement) layer ---------------- */
+// 겨울 저녁, 개구부 모두 닫힘: 실내(18.5–19.6 °C) > 외기 → 굴뚝효과(중성대 위 누기 / 아래 침기)
+// + 실내 자연대류(차가운 창 하강기류 → 바닥 기류 → 발열체 상승기류 → 천장 기류 → 창)
 const flow = new THREE.Group(); flow.visible = false; root.add(flow);
-const FCOL = { in: 0x2f7fd0, out: 0xe0572a, plume: 0xd99a2b, cold: 0x4fb0c6 };
+const FCOL = { in: 0x2f7fd0, out: 0xe0572a, plume: 0xd99a2b, cold: 0x4fb0c6, mix: 0x8b939b };
 const flowPaths = [];
 function addPath(type, pts, opt = {}) {
   const curve = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)), false, 'centripetal');
   const len = curve.getLength();
   const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(24, Math.round(len * 30)), opt.r ?? 0.007, 6),
-    new THREE.MeshBasicMaterial({ color: FCOL[type], transparent: true, opacity: 0.32, depthWrite: false }));
-  const count = Math.max(2, Math.round(len / 0.32));
+    new THREE.MeshBasicMaterial({ color: FCOL[type], transparent: true, opacity: opt.op ?? 0.3, depthWrite: false }));
+  const count = Math.max(2, Math.round(len / (opt.gap ?? 0.32)));
   const cones = new THREE.InstancedMesh(new THREE.ConeGeometry(opt.cone ?? 0.034, 0.1, 12),
     new THREE.MeshBasicMaterial({ color: FCOL[type], transparent: true, opacity: 0.95, depthWrite: false }), count);
   cones.frustumCulled = false;
   const g = new THREE.Group(); g.add(tube, cones); flow.add(g);
-  const rec = { type, curve, len, cones, count, group: g, speed: opt.speed ?? 0.22, phase: Math.random(), case: opt.case ?? 'both' };
+  const rec = { type, curve, len, cones, count, group: g, speed: opt.speed ?? 0.2, phase: Math.random(), case: opt.case ?? 'both' };
   flowPaths.push(rec); return rec;
 }
 const hW = H / 2;
-const exIn = (x, y) => [[x, y, -0.65], [x, y, -0.2], [x, y, -0.04]];
-// 침기 (below the neutral plane): window bottom crack, entrance door bottom gap
-addPath('in', [...exIn(0.55, 0.93), [0.58, 0.82, 0.25], [0.66, 0.3, 0.75], [0.85, 0.09, 1.6], [1.05, 0.1, 2.6], [1.45, 0.25, 3.3]]);
-addPath('in', [...exIn(1.35, 0.93), [1.33, 0.86, 0.36], [1.3, 0.35, 0.85], [1.25, 0.1, 1.7], [1.35, 0.12, 2.7]]);
-addPath('in', [[0.48, 0.015, R.d + 0.7], [0.48, 0.015, R.d + 0.25], [0.48, 0.02, R.d - 0.05], [0.52, 0.05, 4.8], [0.78, 0.07, 4.2], [1.1, 0.12, 3.5], [1.45, 0.3, 2.95]]);
-// 누기 (above the neutral plane): window top crack, AC pipe sleeve, entrance door top gap, kitchen hood duct, bathroom exhaust via door undercut
-addPath('out', [[1.0, 1.5, 1.5], [0.92, 1.82, 0.65], [0.88, 1.975, 0.12], [0.88, 1.975, -0.05], [0.88, 1.975, -0.25], [0.88, 1.975, -0.7]]);
-addPath('out', [[1.75, 1.7, 1.5], [2.25, 2.0, 0.55], [2.47, 2.14, 0.12], [2.5, 2.16, -0.02], [2.5, 2.16, -0.3], [2.5, 2.16, -0.7]]);
-addPath('out', [[1.0, 1.55, 3.9], [0.65, 1.92, 4.8], [0.48, 2.005, R.d - 0.03], [0.48, 2.005, R.d + 0.25], [0.48, 2.005, R.d + 0.7]]);
-addPath('out', [[0.45, 1.55, 3.45], [-0.25, 1.42, 3.25], [-0.68, 1.37, 3.15], [-0.74, 1.75, 3.15], [-0.74, 2.2, 3.15], [-0.74, 2.7, 3.15]]);
-addPath('out', [[0.85, 0.55, 2.75], [0.35, 0.1, 2.15], [0.06, 0.012, 2.03], [-0.15, 0.012, 2.03], [-0.55, 0.4, 2.0], [-0.75, 1.7, 1.95], [-0.78, 2.7, 1.95]]);
-// 창 주변 하강 냉기류 (cold glass, both cases)
-addPath('cold', [[0.45, 1.95, 0.06], [0.45, 1.3, 0.05], [0.5, 0.6, 0.12], [0.62, 0.12, 0.45], [0.85, 0.05, 1.1]], { speed: 0.16 });
-addPath('cold', [[1.3, 1.95, 0.06], [1.3, 1.35, 0.06], [1.3, 0.9, 0.12], [1.28, 0.82, 0.4], [1.2, 0.25, 0.8], [1.15, 0.06, 1.3]], { speed: 0.16 });
-// 호기 상승기류 · 확산 (Case 1 only): each occupant's warm breath rises, spreads under the ceiling
-const OCC = L.occupants.map(o => ({ ...o, head: o.seat + 0.72 }));
+const OCC = L.occupants.map(o => ({ ...o, head: o.seat + 0.72, mouth: [o.x + Math.sin(o.face) * 0.11, o.seat + 0.64, o.z + Math.cos(o.face) * 0.11] }));
+const CONV = 0.2, LEAK = 0.1, ZM_PATH = 3.2;
+// 1) 실내 대류 순환 (both cases): 창 하강 냉기류 → 책장 위로 넘쳐 바닥으로 → 바닥을 따라 방 안쪽 → 데워져 상승 → 천장을 따라 창으로
+addPath('cold', [[0.6, H - 0.1, 0.14], [0.6, 1.85, 0.06], [0.6, 1.15, 0.05], [0.62, 0.93, 0.12], [0.66, 0.85, 0.4], [0.72, 0.5, 0.45], [0.8, 0.31, 0.75], [0.92, 0.29, 1.2], [1.02, 0.07, 1.75], [1.1, 0.06, 2.5], [1.15, 0.1, 3.1]], { speed: CONV });
+addPath('cold', [[1.35, H - 0.1, 0.14], [1.35, 1.85, 0.06], [1.35, 1.15, 0.05], [1.36, 0.93, 0.12], [1.38, 0.85, 0.4], [1.42, 0.35, 0.47], [1.45, 0.07, 0.95], [1.48, 0.06, 1.6], [1.7, 0.07, 2.15], [1.95, 0.2, 2.45]], { speed: CONV });
+addPath('plume', [[1.15, 0.12, 3.15], [1.22, 0.6, 3.2], [1.28, 1.4, 3.2], [1.25, H - 0.12, 3.0], [1.05, H - 0.08, 2.0], [0.8, H - 0.09, 0.8], [0.62, H - 0.1, 0.22]], { speed: CONV });
+addPath('cold', [[1.3, H - 0.12, 4.6], [1.35, 1.6, 5.12], [1.3, 0.6, 5.1], [1.25, 0.12, 4.75], [1.2, 0.06, 3.9], [1.2, 0.2, 3.35]], { speed: CONV * 0.7 });
+// 냉장고 응축기 발열 → 뒤·위로 상승
+addPath('plume', [[2.48, 1.0, 3.19], [2.47, 1.66, 3.12], [2.25, 1.86, 2.95], [2.0, H - 0.12, 2.6], [1.75, H - 0.08, 1.6], [1.4, H - 0.09, 0.6]], { speed: CONV });
+// 2) 재실자 날숨 상승기류 (Case 1): 머리 위로 올라가 천장에 닿은 뒤, 자기가 속한 대류 셀을 따라 퍼짐
 for (const o of OCC) {
-  const up = [[o.x, o.head + 0.12, o.z], [o.x, o.head + 0.55, o.z], [o.x, H - 0.12, o.z]];
-  addPath('plume', [...up, [(o.x + 0.9) / 2, H - 0.08, Math.max(0.35, o.z - 0.9)], [0.9, H - 0.12, 0.12]], { case: 'c1', speed: 0.26 });
-  addPath('plume', [...up, [(o.x + 1.3) / 2, H - 0.08, Math.min(4.4, o.z + 1.1)], [1.25, 1.6, Math.min(4.7, o.z + 1.7)], [1.2, 1.05, Math.min(4.6, o.z + 1.9)]], { case: 'c1', speed: 0.26 });
+  const up = [[o.x, o.head + 0.12, o.z], [o.x, o.head + 0.5, o.z], [o.x, H - 0.13, o.z]];
+  const toWindow = o.z < ZM_PATH, end = toWindow ? Math.max(0.3, o.z - 1.6) : Math.min(4.95, o.z + 0.8);
+  addPath('plume', [...up, [o.x + (0.9 - o.x) * 0.4, H - 0.07, (o.z + end) / 2], [0.95, H - 0.08, end]], { case: 'c1', speed: 0.26 });
+  const side = o.x < 1.27 ? 0.65 : -0.65;
+  addPath('plume', [...up, [o.x + side * 0.6, H - 0.07, o.z + (toWindow ? -0.15 : 0.15)], [o.x + side, H - 0.1, o.z + (toWindow ? -0.3 : 0.3)]], { case: 'c1', speed: 0.26 });
 }
-// 실내 혼합 → 측정기 (both cases)
-addPath('plume', [[1.15, 1.2, 3.3], [1.55, 0.9, 2.9], [1.95, 0.72, 2.45], [S.x - 0.04, SENSOR_BASE + 0.05, S.z + 0.02]], { speed: 0.18 });
+// 3) 침기 (중성대 아래): 찬 외기·복도 공기는 들어오자마자 바닥으로 깔린다
+const LK = { speed: LEAK, r: 0.006, gap: 0.28 };
+addPath('in', [[0.95, 0.905, -0.6], [0.95, 0.905, -0.2], [0.95, 0.9, 0.0], [0.97, 0.86, 0.3], [0.99, 0.55, 0.43], [1.0, 0.28, 0.62], [1.03, 0.07, 1.2], [1.08, 0.06, 2.0]], LK);
+addPath('in', [[0.48, 0.012, R.d + 0.65], [0.48, 0.012, R.d + 0.2], [0.48, 0.015, R.d - 0.02], [0.52, 0.03, 4.75], [0.72, 0.05, 4.25], [0.95, 0.07, 3.75]], LK);
+// 4) 누기 (중성대 위) + 배기 덕트 쪽 흡인
+addPath('out', [[0.85, H - 0.1, 0.55], [0.85, 2.03, 0.12], [0.85, 1.98, 0.0], [0.85, 1.98, -0.25], [0.85, 1.98, -0.6]], LK);
+addPath('out', [[2.0, H - 0.1, 0.9], [2.4, 2.17, 0.18], [2.5, 2.17, 0.0], [2.5, 2.17, -0.3], [2.5, 2.17, -0.6]], LK);
+addPath('out', [[0.85, H - 0.1, 4.4], [0.55, 2.06, 5.0], [0.48, 2.0, R.d - 0.02], [0.48, 2.0, R.d + 0.25], [0.48, 2.0, R.d + 0.65]], LK);
+addPath('out', [[0.3, H - 0.13, 3.35], [-0.35, 1.75, 3.25], [-0.72, 1.38, 3.2], [-0.74, 1.8, 3.2], [-0.74, 2.3, 3.2], [-0.74, 2.75, 3.2]], LK);
+addPath('out', [[0.85, 0.45, 2.7], [0.35, 0.08, 2.12], [0.05, 0.012, 2.03], [-0.25, 0.02, 2.0], [-0.6, 0.6, 1.9], [-0.76, 1.8, 1.9], [-0.78, 2.75, 1.9]], LK);
+// 5) 섞인 실내 공기가 측정 높이(선반 두 번째 칸)로
+addPath('mix', [[1.7, 0.08, 2.15], [1.95, 0.35, 2.3], [2.12, 0.62, 2.22], [S.x - 0.03, SENSOR_BASE + 0.05, S.z]], { speed: 0.12, gap: 0.24 });
+addPath('mix', [[1.25, 1.1, 2.95], [1.7, 0.85, 2.55], [2.05, 0.7, 2.3], [S.x - 0.03, SENSOR_BASE + 0.06, S.z + 0.02]], { speed: 0.12, gap: 0.24 });
 
 // leakage points
 const leaks = [
-  ['in', '창 하부 틈 · 침기', 0.95, 0.93, 0.0],
-  ['out', '창 상부 틈 · 누기', 0.88, 1.975, 0.0],
-  ['out', '에어컨 배관 구멍 · 누기', 2.5, 2.16, 0.0],
+  ['in', '창 하부 틈 · 침기', 0.95, 0.9, 0.0],
+  ['out', '창 상부 틈 · 누기', 0.85, 1.98, 0.0],
+  ['out', '에어컨 배관 구멍 · 누기', 2.5, 2.17, 0.0],
   ['in', '현관문 하부 틈 · 침기', 0.48, 0.02, R.d],
-  ['out', '현관문 상부 틈 · 누기', 0.48, 2.005, R.d],
+  ['out', '현관문 상부 틈 · 누기', 0.48, 2.0, R.d],
   ['out', '화장실 문 아래 → 배기구', 0.0, 0.03, 2.03],
-  ['out', '주방 후드 덕트 · 누기', -0.7, 1.37, 3.15],
+  ['out', '주방 후드 덕트 · 누기', -0.72, 1.38, 3.2],
 ];
 const flowLabels = [];
 function flowLabel(text, cls, x, y, z) {
@@ -1216,6 +1326,8 @@ for (const [type, text, x, y, z] of leaks) {
   m.position.set(x, y, z); flow.add(m);
   flowLabel(text, type, x, y + (y < 1 ? -0.14 : 0.16), z);
 }
+flowLabel('창 하강 냉기류', 'cold', 1.0, 1.45, 0.08);
+flowLabel('바닥 기류', 'cold', 1.15, 0.12, 2.3);
 // neutral pressure plane (중성대)
 {
   const npl = new THREE.Mesh(new THREE.ShapeGeometry(shape(L.floor)), new THREE.MeshBasicMaterial({ color: 0x2d5277, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false }));
@@ -1242,33 +1354,161 @@ for (const o of OCC) {
   const lb = flowLabel(`재실자 ${o.name}`, 'occ', o.x, o.head + 0.2, o.z);
   lb.userData.occ = true;
 }
-// CO2 particles: density follows the measured concentration
-const NPART = 1400;
-const partGeo = new THREE.BufferGeometry();
-const pPos = new Float32Array(NPART * 3), pCol = new Float32Array(NPART * 3), pVel = new Float32Array(NPART * 3);
+
+/* ---- estimated air velocity field [m/s] (local room coordinates) ----
+   질량보존(∇·v = 0)을 만족하도록 유선함수로 만든 장:
+   ① 창 쪽 셀과 현관 쪽 셀이 방 가운데(z ≈ 3.2 m)에서 만나 위로 올라가는 2셀 자연대류
+      (차가운 창·현관문 쪽에서 내려오고, 바닥을 따라 가운데로 모였다가, 천장을 따라 되돌아감)
+   ② 재실자·냉장고 위 축대칭 열기둥(가운데는 상승, 주변은 약한 하강으로 보상)          */
+const ZM = 3.2, CA = 0.055, CB = 0.5, WB0 = 0.3;
+const PL_C2 = [{ x: 2.42, z: 3.05, y0: 1.6, s: 0.07, sg: 0.22 }];                                  // fridge condenser
+const PL_C1 = [...PL_C2, ...OCC.map(o => ({ x: o.x, z: o.z, y0: o.seat + 0.5, s: 0.17, sg: 0.28 }))];  // seated people ≈ 0.17 m/s
+function cellF(z) {                                    // stream-function profile f(z) and f'(z)
+  if (z <= ZM) { const e = Math.exp(-z / WB0), a = 1 - e, b = 1 - z / ZM; return [a * b, (e / WB0) * b - a / ZM]; }
+  const u = R.d - z, w = R.d - ZM, e = Math.exp(-u / WB0), a = 1 - e, b = 1 - u / w;
+  return [-CB * a * b, CB * ((e / WB0) * b - a / w)];
+}
+const VEL = [0, 0, 0];
+function airVelocity(x, y, z, c1) {
+  const [f, fp] = cellF(Math.max(0, Math.min(R.d, z))), sy = Math.sin(Math.PI * y / H), cy = Math.cos(Math.PI * y / H);
+  let vx = 0, vz = CA * f * Math.PI / H * cy, vy = -CA * fp * sy;     // ψ = CA·f(z)·sin(πy/H)
+  for (const p of (c1 ? PL_C1 : PL_C2)) {
+    if (y <= p.y0) continue;
+    const dx = x - p.x, dz = z - p.z, r2 = dx * dx + dz * dz, r = Math.sqrt(r2) + 1e-4, q = r2 / (2 * p.sg * p.sg), g = Math.exp(-q);
+    const span = H - p.y0, ph = Math.PI * (y - p.y0) / span, h = Math.sin(ph), hp = Math.PI / span * Math.cos(ph);
+    vy += p.s * (1 - q) * g * h;                                       // core rises, ring sinks (zero net flux)
+    const ur = -hp * p.s * (r / 2) * g;                                // entrainment below, spreading under the ceiling
+    vx += ur * dx / r; vz += ur * dz / r;
+  }
+  VEL[0] = vx; VEL[1] = vy; VEL[2] = vz; return VEL;
+}
+
+/* ---- particles: CO2 (count = measured concentration) + fresh air entering through the cracks ---- */
+const GLOW = glowTexture();
+const PVS = `attribute vec3 pcolor; attribute float alpha; uniform float size; uniform float scale; varying vec3 vC; varying float vA;
+void main() { vC = pcolor; vA = alpha; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = size * scale / -mv.z; gl_Position = projectionMatrix * mv; }`;
+const PFS = `uniform sampler2D map; varying vec3 vC; varying float vA;
+void main() { float a = texture2D(map, gl_PointCoord).a * vA; if (a < 0.01) discard; gl_FragColor = vec4(vC, a); }`;
+function makePoints(n, size) {
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), alp = new Float32Array(n);
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('pcolor', new THREE.BufferAttribute(col, 3));
+  geo.setAttribute('alpha', new THREE.BufferAttribute(alp, 1));
+  const m = new THREE.ShaderMaterial({ uniforms: { map: { value: GLOW }, size: { value: size }, scale: { value: 400 } }, vertexShader: PVS, fragmentShader: PFS, transparent: true, depthWrite: false });
+  const pts = new THREE.Points(geo, m); pts.frustumCulled = false; pts.renderOrder = 3; flow.add(pts);
+  return { geo, pos, col, alp, mat: m };
+}
+const NPART = 1400, NFRESH = 260, FRESH_LIFE = 14;
+const PC = makePoints(NPART, 0.085), PF = makePoints(NFRESH, 0.075);
+const pAge = new Float32Array(NPART), fAge = new Float32Array(NFRESH).fill(1e9), fVel = new Float32Array(NFRESH * 3);
+let active = 0, target = 0, jumpReq = true, turnT = 0, fAcc = 0, fNext = 0;
+{
+  const c1 = new THREE.Color(0xf2a03d), c2 = new THREE.Color(0xd8402a), tmp = new THREE.Color();
+  for (let i = 0; i < NPART; i++) { tmp.copy(c1).lerp(c2, Math.random()); PC.col.set([tmp.r, tmp.g, tmp.b], i * 3); }
+  const b = new THREE.Color(0x2f7fd0); for (let i = 0; i < NFRESH; i++) PF.col.set([b.r, b.g, b.b], i * 3);
+}
+function updatePointScale() { const s = renderer.domElement.height / 2; PC.mat.uniforms.scale.value = s; PF.mat.uniforms.scale.value = s; }
+updatePointScale();
 function inFloor(x, z) {
   let c = false; const p = L.floor;
   for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
     const [xi, zi] = p[i], [xj, zj] = p[j];
     if (((zi > z) !== (zj > z)) && (x < (xj - xi) * (z - zi) / (zj - zi) + xi)) c = !c;
   }
-  return c;
+  return c && !(x < 0 && z > K.z1);            // the wardrobe bay is solid
 }
-function spawn(i) {
-  let x, z; do { x = minX + Math.random() * (maxX - minX); z = minZ + Math.random() * (maxZ - minZ); } while (!inFloor(x, z) || (x < 0 && z > K.z1));
-  pPos[i * 3] = x; pPos[i * 3 + 1] = 0.05 + Math.random() * (H - 0.12); pPos[i * 3 + 2] = z;
+function placeMixed(i) {
+  let x, z; do { x = minX + Math.random() * (maxX - minX); z = minZ + Math.random() * (maxZ - minZ); } while (!inFloor(x, z));
+  PC.pos[i * 3] = x; PC.pos[i * 3 + 1] = 0.05 + Math.random() * (H - 0.12); PC.pos[i * 3 + 2] = z;
 }
-{
-  const c1 = new THREE.Color(0xf2a03d), c2 = new THREE.Color(0xd8402a), tmp = new THREE.Color();
-  for (let i = 0; i < NPART; i++) {
-    spawn(i); tmp.copy(c1).lerp(c2, Math.random()); pCol.set([tmp.r, tmp.g, tmp.b], i * 3);
-    pVel.set([(Math.random() - 0.5) * 0.04, (Math.random() - 0.5) * 0.02, (Math.random() - 0.5) * 0.04], i * 3);
+function emitBreath(i) {
+  const o = OCC[(Math.random() * OCC.length) | 0], m = o.mouth;
+  PC.pos[i * 3] = m[0] + (Math.random() - 0.5) * 0.06; PC.pos[i * 3 + 1] = m[1] + Math.random() * 0.05; PC.pos[i * 3 + 2] = m[2] + (Math.random() - 0.5) * 0.06;
+}
+function copyPart(src, dst) {
+  for (let k = 0; k < 3; k++) { PC.pos[dst * 3 + k] = PC.pos[src * 3 + k]; PC.col[dst * 3 + k] = PC.col[src * 3 + k]; }
+  pAge[dst] = pAge[src];
+}
+const SINKS = [                                    // where indoor air leaves (segments)
+  [[0.2, 1.97, 0.03], [1.68, 1.97, 0.03]],         // window top crack
+  [[2.48, 2.16, 0.03], [2.48, 2.16, 0.03]],        // AC pipe sleeve
+  [[0.06, 1.99, R.d - 0.03], [0.9, 1.99, R.d - 0.03]], // entrance door head
+  [[-0.72, 1.36, 3.0], [-0.72, 1.36, 3.4]],        // kitchen hood duct
+  [[0.03, 0.03, 1.7], [0.03, 0.03, 2.35]],         // bathroom door undercut → exhaust shaft
+];
+const SOURCES = [                                  // where outdoor / corridor air comes in
+  { a: [0.2, 0.9, 0.04], b: [1.68, 0.9, 0.04], v: [0, -0.03, 0.12], w: 0.55 },
+  { a: [0.06, 0.02, R.d - 0.04], b: [0.9, 0.02, R.d - 0.04], v: [0, 0, -0.12], w: 0.45 },
+];
+const SQ = [0, 0, 0];
+function nearestSink(x, y, z) {
+  let bd = 1e9;
+  for (const [a, b] of SINKS) {
+    const ax = b[0] - a[0], ay = b[1] - a[1], az = b[2] - a[2], l2 = ax * ax + ay * ay + az * az;
+    const u = l2 ? Math.max(0, Math.min(1, ((x - a[0]) * ax + (y - a[1]) * ay + (z - a[2]) * az) / l2)) : 0;
+    const px = a[0] + ax * u, py = a[1] + ay * u, pz = a[2] + az * u, d = Math.hypot(x - px, y - py, z - pz);
+    if (d < bd) { bd = d; SQ[0] = px; SQ[1] = py; SQ[2] = pz; }
   }
+  return bd;
 }
-partGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-partGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
-const particles = new THREE.Points(partGeo, new THREE.PointsMaterial({ size: 0.085, map: glowTexture(), vertexColors: true, transparent: true, opacity: 0.5, depthWrite: false, sizeAttenuation: true }));
-particles.frustumCulled = false; flow.add(particles);
+const VSHOW = 2.4;                                  // shown 2.4× faster than the real ~0.05–0.2 m/s
+function stepParticles(dt, c1, moving) {
+  const vs = REDUCED ? 0 : VSHOW, jit = REDUCED ? 0 : 0.05 * Math.sqrt(dt);
+  if (jumpReq) { for (let i = active; i < target; i++) { placeMixed(i); pAge[i] = 1; } active = target; jumpReq = false; }
+  else if (target > active) {
+    const k = Math.min(target - active, Math.max(1, Math.round(dt * 90)));
+    for (let j = 0; j < k; j++) { const i = active++; if (c1) emitBreath(i); else placeMixed(i); pAge[i] = 0; }
+  }
+  // time paused in Case 1: breath keeps coming in, the same amount leaks out
+  if (c1 && !moving && active > 0 && !REDUCED) {
+    turnT += dt;
+    while (turnT > 0.18) {
+      turnT -= 0.18; let best = -1, bd = 1e9;
+      for (let s = 0; s < 24; s++) { const i = (Math.random() * active) | 0; const d = nearestSink(PC.pos[i * 3], PC.pos[i * 3 + 1], PC.pos[i * 3 + 2]); if (d < bd) { bd = d; best = i; } }
+      if (best >= 0 && bd < 0.5) { emitBreath(best); pAge[best] = 0; }
+    }
+  }
+  let i = 0;
+  while (i < active) {
+    const ix = i * 3; let x = PC.pos[ix], y = PC.pos[ix + 1], z = PC.pos[ix + 2];
+    const v = airVelocity(x, y, z, c1); let vx = v[0], vy = v[1], vz = v[2];
+    let a = 0.55 * Math.min(1, pAge[i] / 0.8);
+    if (i >= target) {                               // surplus CO2 is carried out through the nearest crack
+      const d = nearestSink(x, y, z);
+      if (d < 0.07) { active--; if (i !== active) copyPart(active, i); continue; }
+      const pull = 0.3; vx += (SQ[0] - x) / d * pull; vy += (SQ[1] - y) / d * pull; vz += (SQ[2] - z) / d * pull;
+      a *= Math.min(1, d / 0.35);
+    }
+    const nx = x + vx * vs * dt + (Math.random() - 0.5) * jit, nz = z + vz * vs * dt + (Math.random() - 0.5) * jit;
+    if (inFloor(nx, nz)) { x = nx; z = nz; }
+    y = Math.max(0.03, Math.min(H - 0.03, y + vy * vs * dt + (Math.random() - 0.5) * jit));
+    PC.pos[ix] = x; PC.pos[ix + 1] = y; PC.pos[ix + 2] = z; PC.alp[i] = a; pAge[i] += dt; i++;
+  }
+  PC.geo.setDrawRange(0, active);
+  PC.geo.attributes.position.needsUpdate = true; PC.geo.attributes.alpha.needsUpdate = true; PC.geo.attributes.pcolor.needsUpdate = true;
+  // fresh air through the cracks below the neutral plane
+  fAcc += dt * 7 * (REDUCED ? 0 : 1);
+  while (fAcc > 1) {
+    fAcc -= 1; const k = fNext; fNext = (fNext + 1) % NFRESH;
+    const s = Math.random() < SOURCES[0].w ? SOURCES[0] : SOURCES[1], u = Math.random();
+    for (let c = 0; c < 3; c++) { PF.pos[k * 3 + c] = s.a[c] + (s.b[c] - s.a[c]) * u; fVel[k * 3 + c] = s.v[c]; }
+    fAge[k] = 0;
+  }
+  for (let k = 0; k < NFRESH; k++) {
+    if (fAge[k] >= FRESH_LIFE) { PF.alp[k] = 0; continue; }
+    const ix = k * 3, e = Math.exp(-fAge[k] / 1.5);
+    let x = PF.pos[ix], y = PF.pos[ix + 1], z = PF.pos[ix + 2];
+    const v = airVelocity(x, y, z, c1);
+    const nx = x + (v[0] + fVel[ix] * e) * vs * dt + (Math.random() - 0.5) * jit, nz = z + (v[2] + fVel[ix + 2] * e) * vs * dt + (Math.random() - 0.5) * jit;
+    if (inFloor(nx, nz)) { x = nx; z = nz; }
+    y = Math.max(0.02, Math.min(H - 0.03, y + (v[1] + fVel[ix + 1] * e) * vs * dt));
+    PF.pos[ix] = x; PF.pos[ix + 1] = y; PF.pos[ix + 2] = z;
+    PF.alp[k] = 0.85 * Math.min(1, fAge[k] / 0.4) * (1 - fAge[k] / FRESH_LIFE);
+    fAge[k] += dt;
+  }
+  PF.geo.attributes.position.needsUpdate = true; PF.geo.attributes.alpha.needsUpdate = true;
+}
 
 /* ---------------- inside viewpoints ---------------- */
 const EYE = 1.55;
@@ -1310,8 +1550,8 @@ function setOrbitLimits(inside) {
 function applyViewOffset() {
   const w = innerWidth, h = innerHeight;
   let off = 0, offY = 0;
-  if (w > 760 && mode !== 'inside') off = flowOn ? -Math.min(190, w * 0.13) : Math.min(150, w * 0.1);
-  if (w <= 760 && (flowOn || !panel.classList.contains('collapsed'))) offY = h * 0.2;
+  if (w > 760 && mode !== 'inside') off = flowOn ? -Math.min(190, w * 0.13) : qOn ? -Math.min(200, w * 0.14) : Math.min(150, w * 0.1);
+  if (w <= 760 && (flowOn || qOn || !panel.classList.contains('collapsed'))) offY = h * 0.2;
   if (off || offY) camera.setViewOffset(w, h, off, offY, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
 }
@@ -1384,19 +1624,20 @@ slider.max = String(NPTS - 1);
 let tIdx = Math.round((iStart + iPeak) / 2), playing = false, playAcc = 0;
 slider.value = String(tIdx);
 function caseOf(i) { return i <= iPeak ? 'c1' : 'c2'; }
-function setTime(i) {
+const targetFor = ppm => Math.round(NPART * THREE.MathUtils.clamp((ppm - CO) / (2600 - CO), 0, 1));
+function setTime(i, fromPlay = false) {
   tIdx = Math.max(0, Math.min(NPTS - 1, i)); slider.value = String(tIdx);
   const c = caseOf(tIdx), v = co2[tIdx];
   document.getElementById('nowPpm').textContent = `${v.toLocaleString('en-US')} ppm`;
   document.getElementById('nowTime').textContent = hm(at(tIdx));
   const chip = document.getElementById('nowCase');
-  chip.textContent = c === 'c1' ? 'Case 1 · 3명 재실' : 'Case 2 · 무인 감소';
+  chip.textContent = c === 'c1' ? `Case 1 · ${NOCC}명 재실` : 'Case 2 · 무인 감소';
   chip.className = 'chip' + (c === 'c1' ? ' c1' : '');
   case1Btn.setAttribute('aria-pressed', String(c === 'c1')); case2Btn.setAttribute('aria-pressed', String(c === 'c2'));
   people.visible = c === 'c1';
   for (const p of flowPaths) p.group.visible = p.case === 'both' || p.case === c;
-  const frac = THREE.MathUtils.clamp((v - CO) / (2600 - CO), 0, 1);
-  partGeo.setDrawRange(0, Math.round(NPART * frac));
+  target = targetFor(v);
+  if (!fromPlay) jumpReq = true;
   if (flowOn) sensorEl.innerHTML = `<b>${S.name} · ${hm(at(tIdx))}</b><em>${v.toLocaleString('en-US')} ppm</em><span>위에서 두 번째 칸 · 바닥 위 약 ${S.y.toFixed(2)} m</span>`;
   drawChartCursor();
 }
@@ -1405,10 +1646,12 @@ slider.addEventListener('input', () => { setPlaying(false); setTime(+slider.valu
 playBtn.addEventListener('click', () => { if (!playing && tIdx >= NPTS - 1) setTime(0); setPlaying(!playing); });
 case1Btn.addEventListener('click', () => { setPlaying(false); setTime(Math.round((iStart + iPeak) / 2)); });
 case2Btn.addEventListener('click', () => { setPlaying(false); setTime(Math.round((iPeak + NPTS - 1) / 2)); });
+function syncSheets() { panel.hidden = flowOn || qOn; hint.hidden = flowOn || qOn; applyViewOffset(); }
 function setFlow(on) {
+  if (on && qOn) setQ(false);
   flowOn = on; flowBtn.setAttribute('aria-pressed', String(on));
-  flow.visible = on; flowSheet.hidden = !on; hint.hidden = on; panel.hidden = on;
-  applyViewOffset();
+  flow.visible = on; flowSheet.hidden = !on;
+  syncSheets();
   if (on) {
     setSpin(false);
     if (mode === 'top' || mode === 'sensor') goOverview();
@@ -1455,27 +1698,15 @@ function updateFlow(dt, t) {
       const u = ((p.phase + k / p.count + t * sp / p.len) % 1 + 1) % 1;
       p.curve.getPointAt(u, pv); p.curve.getTangentAt(u, tv);
       qtn.setFromUnitVectors(UP, tv);
-      const s = Math.min(1, Math.sin(Math.PI * u) * 2.2) * (p.type === 'out' ? 0.75 + 0.35 * conc : 1);
+      const s = Math.min(1, Math.sin(Math.PI * u) * 2.2) * (p.type === 'out' ? 0.7 + 0.35 * conc : p.type === 'in' ? 0.85 : 1);
       mtx.compose(pv, qtn, sc.set(s, s, s)); p.cones.setMatrixAt(k, mtx);
     }
     p.cones.instanceMatrix.needsUpdate = true;
   }
-  // particle drift: slow swirl, rising over occupants while they are in the room
-  const n = partGeo.drawRange.count;
-  for (let i = 0; i < n; i++) {
-    const ix = i * 3; let x = pPos[ix], y = pPos[ix + 1], z = pPos[ix + 2];
-    let vx = pVel[ix] + Math.sin(y * 2.1 + t * 0.35 + z) * 0.012, vy = pVel[ix + 1] + Math.cos(x * 1.7 + t * 0.3) * 0.006, vz = pVel[ix + 2] + Math.sin(x * 1.3 + t * 0.25) * 0.012;
-    if (c === 'c1') for (const o of OCC) { const dx = x - o.x, dz = z - o.z, d2 = dx * dx + dz * dz; if (d2 < 0.12 && y > o.seat) vy += 0.12 * (1 - d2 / 0.12); }
-    x += vx * dt; y += vy * dt; z += vz * dt;
-    if (y > H - 0.06) { y = H - 0.06; pVel[ix + 1] = -Math.abs(pVel[ix + 1]); }
-    if (y < 0.04) { y = 0.04; pVel[ix + 1] = Math.abs(pVel[ix + 1]); }
-    if (!inFloor(x, z)) { spawn(i); continue; }
-    pPos[ix] = x; pPos[ix + 1] = y; pPos[ix + 2] = z;
-  }
-  partGeo.attributes.position.needsUpdate = true;
+  stepParticles(dt, c === 'c1', playing);
   if (playing) {
     playAcc += dt * 12;
-    if (playAcc >= 1) { const step = Math.floor(playAcc); playAcc -= step; setTime(tIdx + step); if (tIdx >= NPTS - 1) setPlaying(false); }
+    if (playAcc >= 1) { const step = Math.floor(playAcc); playAcc -= step; setTime(tIdx + step, true); if (tIdx >= NPTS - 1) setPlaying(false); }
   }
 }
 const clock = new THREE.Clock();
@@ -1501,18 +1732,21 @@ function frame(now) {
 }
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; applyViewOffset();
-  renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight); updatePointScale();
 });
 
 /* ---------------- data sheets ---------------- */
-const fmt = v => v.toLocaleString('en-US');
+const fmt = v => Math.round(v).toLocaleString('en-US');
+const f2 = (v, d = 2) => v.toFixed(d);
+const stat = (v, l) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`;
 const chartEl = document.getElementById('chart');
 const CW = 320, CH = 150, ml = 34, mr = 10, mt = 14, mb = 20, lo = 300, hi = 2750;
 const CX = i => ml + (CW - ml - mr) * i / (NPTS - 1), CY = v => mt + (CH - mt - mb) * (1 - (v - lo) / (hi - lo));
 let chartBase = '';
-{
+function polyPts(series, X, Y, step = 1) { const p = []; series.forEach((v, i) => { if (v != null && i % step === 0) p.push(`${X(i).toFixed(1)},${Y(v).toFixed(1)}`); }); return p.join(' '); }
+function renderSheets() {
   const d1 = at(NPTS - 1);
-  document.getElementById('fDate').innerHTML = `${t0.getFullYear()}.${t0.getMonth() + 1}.${t0.getDate()} ${hm(t0)} – ${hm(d1)}<small>${DATA.step / 60}분 간격 · ${NPTS}회 기록</small>`;
+  document.getElementById('fDate').innerHTML = `${t0.getFullYear()}.${t0.getMonth() + 1}.${t0.getDate()} ${hm(t0)} – ${hm(d1)}<small>${MPS}분 간격 · ${NPTS}회 기록</small>`;
   document.getElementById('fSensor').textContent = S.model;
   document.getElementById('fSensorPos').textContent = `${S.shelf} · 바닥 위 약 ${S.y.toFixed(2)} m`;
   document.getElementById('fRoom').innerHTML = `${R.w.toFixed(2)} × ${R.d.toFixed(2)} m<span class="tag">실측</span> + 주방 ${(K.z1 - K.z0).toFixed(2)} × ${(-K.x0).toFixed(2)} m<small>천장고 ${H.toFixed(2)} m (실측) · 바닥 ${AREA.toFixed(1)} m² · 체적 약 ${VOL.toFixed(1)} m³</small>`;
@@ -1520,37 +1754,140 @@ let chartBase = '';
   let s = '';
   for (const v of [500, 1000, 1500, 2000, 2500]) s += `<line class="grid" x1="${ml}" x2="${CW - mr}" y1="${CY(v)}" y2="${CY(v)}"/><text class="axis" x="${ml - 5}" y="${CY(v) + 3}" text-anchor="end">${fmt(v)}</text>`;
   s += `<rect class="band" x="${CX(iStart)}" y="${mt}" width="${CX(iPeak) - CX(iStart)}" height="${CH - mt - mb}"/>`;
-  s += `<text class="bandtxt" x="${(CX(iStart) + CX(iPeak)) / 2}" y="${mt - 3}" text-anchor="middle">Case 1 · 3명 재실</text>`;
+  s += `<text class="bandtxt" x="${(CX(iStart) + CX(iPeak)) / 2}" y="${mt - 3}" text-anchor="middle">Case 1 · ${NOCC}명 재실</text>`;
   s += `<text class="bandtxt" x="${(CX(iPeak) + CX(NPTS - 1)) / 2}" y="${mt - 3}" text-anchor="middle">Case 2 · 무인</text>`;
   s += `<line class="ref" x1="${ml}" x2="${CW - mr}" y1="${CY(1000)}" y2="${CY(1000)}"/><text class="reftxt" x="${CW - mr - 2}" y="${CY(1000) + 11}" text-anchor="end">실내 기준 1,000 ppm</text>`;
   for (let i = 0; i < NPTS; i++) { const d = at(i); if (d.getMinutes() === 0 && d.getSeconds() < DATA.step) s += `<text class="axis" x="${CX(i)}" y="${CH - 6}" text-anchor="middle">${hm(d).slice(0, 2)}:00</text>`; }
-  const pts = co2.map((v, i) => `${CX(i).toFixed(1)},${CY(v).toFixed(1)}`).join(' ');
+  const pts = polyPts(co2, CX, CY);
   s += `<polygon class="area" points="${CX(0)},${CY(lo)} ${pts} ${CX(NPTS - 1)},${CY(lo)}"/><polyline class="ln" points="${pts}"/>`;
-  const fpts = []; for (let i = iPeak; i < NPTS; i += 3) fpts.push(`${CX(i).toFixed(1)},${CY(CO + (fit.C0 - CO) * Math.exp(-fit.n * (i - iPeak) * DATA.step / 3600)).toFixed(1)}`);
-  s += `<polyline class="fit" points="${fpts.join(' ')}"/>`;
+  s += `<polyline class="fit" points="${polyPts(modelSeries(NOCC, Q1.n), CX, CY, 2)}"/>`;
   s += `<circle class="dot" cx="${CX(iPeak)}" cy="${CY(co2[iPeak])}" r="3.2"/><text class="peak" x="${CX(iPeak) + 5}" y="${CY(co2[iPeak]) + 3}">${fmt(co2[iPeak])}</text>`;
   s += `<circle class="dot2" cx="${CX(NPTS - 1)}" cy="${CY(co2[NPTS - 1])}" r="3"/>`;
-  chartBase = s; chartEl.innerHTML = s;
+  chartBase = s; drawChartCursor();
   const tmin = Math.min(...DATA.temp), tmax = Math.max(...DATA.temp), hmin = Math.min(...DATA.rh), hmax = Math.max(...DATA.rh);
-  const stat = (v, l) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`;
   document.getElementById('stats').innerHTML =
     stat(`${fmt(co2[iPeak])} ppm`, `최고 농도 · ${hm(at(iPeak))}`) +
     stat(`${fmt(co2[NPTS - 1])} ppm`, `측정 종료 · ${hm(d1)}`) +
     stat(`${tmin.toFixed(1)}–${tmax.toFixed(1)} °C`, '실내 온도 범위') +
     stat(`${hmin.toFixed(0)}–${hmax.toFixed(0)} %`, '상대습도 범위');
+  document.getElementById('chartNote').textContent =
+    `가로·세로·천장고·주방 폭은 실측, 가구 크기와 주방 깊이는 사진으로 추정했습니다. 점선은 11주차 식으로 계산한 값입니다 (${NOCC}명 × ${GP} m³/h, n = ${f2(Q1.n)} 회/h).`;
   document.getElementById('flowStats').innerHTML =
-    stat(`${fit.n.toFixed(2)} 회/h`, `환기횟수 n (틈새바람, R² ${fit.r2.toFixed(3)})`) +
-    stat(`${(fit.n * VOL).toFixed(1)} m³/h`, `틈새 환기량 Q = n·V`) +
-    stat(`${(GEN / 3 * 1000).toFixed(0)} L/h`, '1인당 CO₂ 발생량 (증가형 물질수지)') +
-    stat(`≈ ${(fit.n * 20).toFixed(1)} 회/h`, 'ACH50 개략 (n × 20 경험식)');
+    stat(`${f2(Q1.n)} 회/h`, '공기교환율 n (Q1, 틈새바람만)') +
+    stat(`${f2(Q1.Q, 1)} m³/h`, '침기량 Q = n·V') +
+    stat(`${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h`, '1인당 CO₂ 발생량 (측정값 역산)') +
+    stat(`${f2(Q1.half, 1)} h`, '초과농도 반감기 ln2 / n');
   document.getElementById('flowNote').textContent =
-    `Case 2(${hm(at(iPeak))} 이후) 농도를 지수 감쇠식에 맞춰 n을 구했습니다. 외기 CO₂ ${CO} ppm, 체적 ${VOL.toFixed(1)} m³ 가정. ` +
-    `개구부가 모두 닫혀 있으므로 실내외 온도차(굴뚝효과)로 생긴 압력차에 의해 틈새로만 공기가 오간다고 보고 그린 추정 경로입니다. 재실자 위치는 가정입니다.`;
+    `개구부가 모두 닫혀 있어 실내외 온도차(굴뚝효과)로 생긴 압력차 때문에 틈새로만 공기가 오간다고 보고 그린 추정 경로입니다. ` +
+    `틈새로 오가는 공기는 시간당 ${f2(Q1.Q, 1)} m³로 방 공기의 ${Math.round(Q1.n * 100)}%뿐이라, 실내에서는 대류 순환이 공기를 섞고 틈새는 그중 일부를 내보냅니다. 재실자 위치는 가정입니다.`;
 }
 function drawChartCursor() {
   if (!flowOn) { chartEl.innerHTML = chartBase; return; }
   chartEl.innerHTML = chartBase + `<line class="cursor" x1="${CX(tIdx)}" x2="${CX(tIdx)}" y1="${mt}" y2="${CH - mb}"/><circle class="cursordot" cx="${CX(tIdx)}" cy="${CY(co2[tIdx])}" r="3"/>`;
 }
+
+/* ---------------- Q1 · Q2 sheet (11주차 과제) ---------------- */
+const qBtn = document.getElementById('qBtn'), qSheet = document.getElementById('qsheet');
+let qOn = false;
+const q1Sel = document.getElementById('q1Start');
+for (let i = iPeak; i <= Math.min(NPTS - 1 - Math.round(60 / MPS), iPeak + 15); i++) {
+  const o = document.createElement('option'); o.value = String(i);
+  o.textContent = `${hm(at(i))} · ${fmt(co2[i])} ppm${i === Q1_DEFAULT ? ' (문 닫은 뒤 첫 값)' : ''}`;
+  q1Sel.appendChild(o);
+}
+q1Sel.value = String(Q1_DEFAULT);
+q1Sel.addEventListener('change', () => { Q1 = q1At(+q1Sel.value); renderSheets(); renderQ(); });
+const simN = document.getElementById('simN'), simn = document.getElementById('simn');
+const nFromSlider = v => 0.05 * Math.pow(6 / 0.05, v / 100), sliderFromN = n => Math.round(100 * Math.log(n / 0.05) / Math.log(6 / 0.05));
+let simExact = null;                                   // presets keep the exact n (the slider is log-stepped)
+function setSim(N, n) { simN.value = String(N); simn.value = String(sliderFromN(n)); simExact = n; renderSim(); }
+simN.addEventListener('input', renderSim); simn.addEventListener('input', () => { simExact = null; renderSim(); });
+document.getElementById('simQ1').addEventListener('click', () => setSim(NOCC, Q1.n));
+document.getElementById('simQ2').addEventListener('click', () => setSim(NOCC, q2().nReq));
+document.getElementById('simStd').addEventListener('click', () => setSim(NOCC, 0.5));
+
+function renderQ() {
+  const Q2 = q2();
+  // Q1
+  document.getElementById('q1Pair').innerHTML =
+    `<div class="stat"><b>${fmt(Q1.c0)} ppm</b><span>0분 · ${hm(at(Q1.i0))}</span></div>` +
+    `<div class="stat"><b>${fmt(Q1.c1)} ppm</b><span>${Math.round(Q1.th * 60)}분 · ${hm(at(Q1.i1))}</span></div>`;
+  document.getElementById('q1Eq').innerHTML =
+    `n = (1/t)·ln[(C<sub>0</sub> − C<sub>i</sub>) / (C(t) − C<sub>i</sub>)]<br>` +
+    `&nbsp;&nbsp;= ln[(${fmt(Q1.c0)} − ${CO}) / (${fmt(Q1.c1)} − ${CO})] / ${f2(Q1.th, 0)} h<br>&nbsp;&nbsp;= <b>${f2(Q1.n, 3)} 회/h</b><br>` +
+    `Q = n·V = ${f2(Q1.n, 3)} × ${f2(VOL, 1)} = <b>${f2(Q1.Q, 1)} m³/h</b>`;
+  document.getElementById('q1Stats').innerHTML =
+    stat(`${f2(Q1.n)} 회/h`, '공기교환율 n') + stat(`${f2(Q1.Q, 1)} m³/h`, '침기량 Q') +
+    stat(`${f2(Q1.tau, 1)} h`, '시정수 τ = 1/n') + stat(`${f2(Q1.half, 1)} h`, '반감기 0.693/n');
+  document.getElementById('q1Note').textContent =
+    `${hm(at(iPeak + 1))}–${hm(at(iDip))}의 일시 하락은 퇴실하며 문을 연 영향으로 보고, 그 뒤 첫 값을 0분으로 잡았습니다. ` +
+    `감소 구간 전체 회귀로 구하면 n = ${f2(fit.n)} 회/h (R² ${f2(fit.r2, 3)}). 신축 공동주택 기준 0.5 회/h의 ${Math.round(Q1.n / 0.5 * 100)}% 수준입니다.`;
+  // Q1 chart: the decay part
+  {
+    const W2 = 320, H2 = 130, l2 = 34, r2 = 10, t2 = 10, b2 = 20, a = Math.max(0, iPeak - 6), b = NPTS - 1;
+    const vmin = Math.floor((Math.min(...co2.slice(a)) - 120) / 100) * 100, vmax = Math.ceil((co2[iPeak] + 80) / 100) * 100;
+    const X = i => l2 + (W2 - l2 - r2) * (i - a) / (b - a), Y = v => t2 + (H2 - t2 - b2) * (1 - (v - vmin) / (vmax - vmin));
+    let s = '';
+    for (let v = Math.ceil(vmin / 200) * 200; v <= vmax; v += 200) s += `<line class="grid" x1="${l2}" x2="${W2 - r2}" y1="${Y(v)}" y2="${Y(v)}"/><text class="axis" x="${l2 - 5}" y="${Y(v) + 3}" text-anchor="end">${fmt(v)}</text>`;
+    for (let i = a; i <= b; i++) { const d = at(i); if (d.getMinutes() % 30 === 0 && d.getSeconds() < DATA.step) s += `<text class="axis" x="${X(i)}" y="${H2 - 6}" text-anchor="middle">${hm(d)}</text>`; }
+    s += `<rect class="band" x="${X(Q1.i0)}" y="${t2}" width="${X(Q1.i1) - X(Q1.i0)}" height="${H2 - t2 - b2}"/>`;
+    s += `<polyline class="ln" points="${co2.slice(a).map((v, k) => `${X(a + k).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')}"/>`;
+    const fp = []; for (let i = Q1.i0; i <= b; i += 2) fp.push(`${X(i).toFixed(1)},${Y(cModel(Q1.c0, 0, Q1.n, (i - Q1.i0) * MPS / 60)).toFixed(1)}`);
+    s += `<polyline class="fit" points="${fp.join(' ')}"/>`;
+    for (const [i, lab] of [[Q1.i0, '0분'], [Q1.i1, '60분']]) s += `<circle class="dot" cx="${X(i)}" cy="${Y(co2[i])}" r="3.2"/><text class="peak" x="${X(i) + 4}" y="${Y(co2[i]) - 6}">${lab}</text>`;
+    document.getElementById('q1Chart').innerHTML = s;
+  }
+  // Q2
+  document.getElementById('q2Head').innerHTML = Q2.exceeded
+    ? `Build-up 최고 <b>${fmt(co2[iPeak])} ppm</b> (${hm(at(iPeak))}) → 1,000 ppm을 넘었으므로 <b>Q2-1</b>에 해당합니다.`
+    : `Build-up이 1,000 ppm을 넘지 않았으므로 <b>Q2-2</b>에 해당합니다.`;
+  document.getElementById('q2Eq').innerHTML =
+    `정상상태 C<sub>ss</sub> = C<sub>i</sub> + G / Q ≤ 1,000 ppm<br>` +
+    `G = ${NOCC}명 × ${GP} = ${f2(Q2.G, 3)} m³/h<br>` +
+    `Q ≥ G / [(1,000 − ${CO})×10<sup>−6</sup>]<br>&nbsp;&nbsp;= ${f2(Q2.G, 3)} / ${f2((1000 - CO) * 1e-6, 6)} = <b>${f2(Q2.Qreq, 1)} m³/h</b>`;
+  document.getElementById('q2Stats').innerHTML =
+    stat(`${f2(Q2.Qreq, 1)} m³/h`, '필요 환기량 Q') + stat(`${f2(Q2.nReq)} 회/h`, '필요 환기횟수 n = Q/V') +
+    stat(`${f2(Q2.perPerson, 1)} m³/h·인`, '1인당 환기량 (강의 29–36)') + stat(`약 ${Math.round(Q2.ratio)}배`, `지금 침기량 ${f2(Q1.Q, 1)} m³/h 대비`);
+  document.getElementById('q2Note').innerHTML =
+    `지금처럼 틈새바람만 있는 상태에서 ${NOCC}명이 계속 머물면 정상상태 농도는 ${CO} + ${f2(Q2.G, 3)}/${f2(Q1.Q, 2)}×10<sup>6</sup> ≈ <b>${fmt(Q2.cssNow)} ppm</b>까지 올라갑니다. ` +
+    `참고로 Q2-2 방식으로 보면, 같은 시작 농도 ${fmt(co2[iStart])} ppm에서 1시간 머물 때 <b>${Q2.Nmin ?? '–'}명</b>부터 1,000 ppm을 넘습니다.`;
+  renderSim();
+}
+function renderSim() {
+  const N = +simN.value, n = simExact ?? nFromSlider(+simn.value);
+  document.getElementById('simNv').textContent = `${N}명`;
+  document.getElementById('simnv').textContent = `${n < 1 ? f2(n) : f2(n, 1)} 회/h`;
+  const ser = modelSeries(N, n);
+  const W2 = 320, H2 = 140, l2 = 34, r2 = 10, t2 = 10, b2 = 20;
+  const vmax = Math.min(8000, Math.max(2750, Math.ceil(Math.max(...ser.filter(v => v != null)) / 500) * 500));
+  const X = i => l2 + (W2 - l2 - r2) * i / (NPTS - 1), Y = v => t2 + (H2 - t2 - b2) * (1 - (v - lo) / (vmax - lo));
+  let s = '';
+  const stepV = vmax > 4000 ? 1000 : 500;
+  for (let v = 500; v <= vmax; v += stepV) s += `<line class="grid" x1="${l2}" x2="${W2 - r2}" y1="${Y(v)}" y2="${Y(v)}"/><text class="axis" x="${l2 - 5}" y="${Y(v) + 3}" text-anchor="end">${fmt(v)}</text>`;
+  s += `<rect class="band" x="${X(iStart)}" y="${t2}" width="${X(iPeak) - X(iStart)}" height="${H2 - t2 - b2}"/>`;
+  for (let i = 0; i < NPTS; i++) { const d = at(i); if (d.getMinutes() === 0 && d.getSeconds() < DATA.step) s += `<text class="axis" x="${X(i)}" y="${H2 - 6}" text-anchor="middle">${hm(d).slice(0, 2)}:00</text>`; }
+  s += `<line class="ref" x1="${l2}" x2="${W2 - r2}" y1="${Y(1000)}" y2="${Y(1000)}"/><text class="reftxt" x="${W2 - r2 - 2}" y="${Y(1000) - 4}" text-anchor="end">1,000 ppm</text>`;
+  s += `<polyline class="meas" points="${polyPts(co2, X, Y)}"/>`;
+  s += `<polyline class="mdl" points="${polyPts(ser, X, Y)}"/>`;
+  document.getElementById('simChart').innerHTML = s;
+  let pk = iStart; for (let i = iStart; i < NPTS; i++) if (ser[i] > ser[pk]) pk = i;
+  let over = -1; for (let i = iStart; i < NPTS; i++) if (ser[i] > 1000) { over = i; break; }
+  let se = 0, cnt = 0; for (let i = iStart; i < NPTS; i++) { se += (ser[i] - co2[i]) ** 2; cnt++; }
+  document.getElementById('simStats').innerHTML =
+    stat(`${fmt(ser[pk])} ppm`, `계산 최고 · ${hm(at(pk))}`) +
+    stat(over < 0 ? '넘지 않음' : hm(at(over)), '1,000 ppm 넘는 시각') +
+    stat(N > 0 ? `${fmt(CO + N * GP / (n * VOL) * 1e6)} ppm` : `${CO} ppm`, '계속 머물 때 정상상태 C<sub>ss</sub>') +
+    stat(`${fmt(Math.sqrt(se / cnt))} ppm`, '측정값과의 차이 (RMSE)');
+}
+function setQ(on) {
+  if (on && flowOn) setFlow(false);
+  qOn = on; qBtn.setAttribute('aria-pressed', String(on)); qSheet.hidden = !on;
+  syncSheets();
+  if (on) { setSpin(false); renderQ(); }
+}
+qBtn.addEventListener('click', () => setQ(!qOn));
+renderSheets();
+setSim(NOCC, Q1.n);
 
 /* ---------------- start ---------------- */
 const k0 = fitK();
@@ -1563,6 +1900,7 @@ function route() {
   if (h === 'flow') { if (!flowOn) setFlow(true); if (mode !== 'overview') goOverview(); }
   else if (h === 'flow-c2') { if (!flowOn) setFlow(true); setTime(Math.round((iPeak + NPTS - 1) / 2)); }
   else if (/^inside(-\d)?$/.test(h)) goInside(h.length > 6 ? Math.min(L.viewpoints.length, +h.slice(7)) - 1 : 0);
+  else if (h === 'q') { if (!qOn) setQ(true); if (mode !== 'overview') goOverview(); }
   else if (h === 'top') goTop();
   else if (h === 'sensor') goSensor();
   else { goOverview(); setSpin(!REDUCED); }
