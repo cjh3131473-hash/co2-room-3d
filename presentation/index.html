@@ -238,9 +238,13 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
 .present .toolbar, .present .hint, .present .note.src { display: none; }
 .present.pfree .toolbar { display: flex; }
 .present .titleblock h1 { font-size: 20px; }
-.present .flow { transform: scale(var(--ps)); transform-origin: left bottom; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 170px) / var(--ps)); }
+.present .flow {
+  transform: scale(var(--ps)); transform-origin: right top;
+  left: auto; right: calc(16px + env(safe-area-inset-right, 0px)); top: calc(16px + env(safe-area-inset-top, 0px)); bottom: auto;
+  max-height: calc((100% - 32px) / var(--ps));
+}
 .present .panel { transform: scale(var(--ps)); transform-origin: right top; max-height: calc((100% - 250px) / var(--ps)); }
-.present.pfree .flow { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 248px) / var(--ps)); }
+.present.pfree .flow { max-height: calc((100% - 110px) / var(--ps)); }
 .pcover {
   position: fixed; z-index: 7; left: 0; right: 0; top: 50%; transform: translateY(-50%); margin-inline: auto;
   width: min(780px, calc(100vw - 32px)); padding: 36px 40px 32px; display: grid; gap: 14px;
@@ -254,7 +258,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
   bottom: calc(16px + env(safe-area-inset-bottom, 0px)); margin-inline: auto; max-width: 1080px;
   padding: 18px 24px 12px; display: grid; gap: 10px;
 }
-.present.sheet-left .pcap { left: calc(32px + 424px * var(--ps)); margin-inline: 0; max-width: none; }
+.present.sheet-left .pcap { right: calc(32px + 424px * var(--ps)); margin-inline: 0; max-width: none; }
 .present.info-right .pcap { right: calc(32px + 364px * var(--ps)); margin-inline: 0; max-width: none; }
 .present.info-right .panel { max-height: calc((100% - 32px) / var(--ps)); }
 .pcaphead { display: flex; gap: 14px; align-items: baseline; }
@@ -1670,7 +1674,7 @@ function applyViewOffset() {
   if (w <= 760 && (flowOn || qOn || !panel.classList.contains('collapsed'))) offY = h * 0.2;
   if (PRESENT && w > 760) {
     const ps = Math.max(1, Math.min(1.35, w / 1400)); document.documentElement.style.setProperty('--ps', ps.toFixed(3));
-    if (mode !== 'inside') { off = (flowOn || qOn) ? -Math.min(230, w * 0.15) * ps : infoHidden ? 0 : off; if (!document.body.classList.contains('pfree')) offY += Math.min(110, h * 0.1); }
+    if (mode !== 'inside') { off = (flowOn || qOn) ? Math.min(150, w * 0.1) * ps : infoHidden ? 0 : off; if (!document.body.classList.contains('pfree')) offY += Math.min(110, h * 0.1); }
   }
   VO.tx = off; VO.ty = offY;
   if (!PRESENT || !VO.ready) { VO.x = off; VO.y = offY; setViewOffsetNow(); }
