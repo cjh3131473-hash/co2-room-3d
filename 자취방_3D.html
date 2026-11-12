@@ -104,6 +104,9 @@ i.sw.meas { border-color: var(--signal); } i.sw.mdl { border-color: var(--ink); 
 .stat b { display: block; font-family: var(--font-mono); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; }
 .stat span { color: var(--muted); font-size: 11.5px; }
 .note { margin: 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.note.src { font-size: 11px; border-top: 1px dashed var(--line); padding-top: 7px; }
+.note.src b { color: var(--ink); font-weight: 600; margin-right: 4px; }
+.legend .tag { margin: 0 2px 0 4px; vertical-align: 1px; }
 
 /* airflow sheet */
 .flow {
@@ -267,7 +270,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
   <dl class="facts">
     <div><dt>측정 일시</dt><dd id="fDate"></dd></div>
     <div><dt>재실 인원</dt><dd>20대 남성 3명<small>약 1시간 머문 뒤 전원 퇴실</small></dd></div>
-    <div><dt>개구부</dt><dd>창문·현관문·화장실 문 모두 닫음<small>환기설비 가동 없음</small></dd></div>
+    <div><dt>개구부</dt><dd>창문·현관문·화장실 문 모두 닫음<small>환기설비·에어컨은 꺼진 것으로 가정</small></dd></div>
     <div><dt>측정기</dt><dd><span class="hl" id="fSensor"></span><small id="fSensorPos"></small></dd></div>
     <div><dt>실 크기</dt><dd id="fRoom"></dd></div>
   </dl>
@@ -294,17 +297,18 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
     <button type="button" id="case2Btn" aria-pressed="false">Case 2 · 감소형<small>무인, 개구부 폐쇄</small></button>
   </div>
   <ul class="legend">
-    <li><i class="in"></i><span>침기 <small>중성대 아래 틈으로 들어온 찬 외기·복도 공기, 무거워서 바닥으로 깔림</small></span></li>
-    <li><i class="out"></i><span>누기 <small>중성대 위 틈과 배기 덕트로 CO₂가 섞인 실내 공기가 빠져나감</small></span></li>
-    <li><i class="plume"></i><span>상승기류 · 천장 기류 <small>방 가운데·재실자·냉장고 위에서 올라가 천장을 따라 창과 현관 쪽으로</small></span></li>
-    <li><i class="cold"></i><span>하강 냉기류 · 바닥 기류 <small>차가운 창·현관문 쪽에서 식은 공기가 내려와 바닥을 따라 방 가운데로 모임</small></span></li>
+    <li><i class="in"></i><span>침기 <small>압력 경계 아래 창틀 틈·문 틈으로 바깥 공기가 들어옴 (10주차 p.12–13)</small></span></li>
+    <li><i class="out"></i><span>누기 <small>압력 경계 위 틈·배관 관통부로 실내 공기가 빠져나감. 화장실·주방은 배기 쪽이라 부압 (10주차 p.11–13)</small></span></li>
+    <li><i class="plume"></i><span>상승기류 · 천장 기류 <span class="tag">보충</span><small>"따뜻한 공기는 위로 올라감"(10주차 p.13)을 재실자·냉장고 열에 적용</small></span></li>
+    <li><i class="cold"></i><span>하강 기류 · 바닥 기류 <span class="tag">보충</span><small>창·현관 쪽에서 내려와 바닥을 따라 가운데로. 방이 골고루 섞인다는 완전혼합 가정(11주차 p.14)을 그림으로 보인 것</small></span></li>
     <li><i class="mix"></i><span>측정기로 <small>섞인 실내 공기가 측정 높이 0.65 m로 들어옴</small></span></li>
   </ul>
-  <p class="note">점 하나하나가 CO₂(주황)와 틈으로 들어온 외기(파랑)입니다. 주황 점의 수는 그 시각의 측정 농도에 맞춰지고, 재생하면 재실자 입에서 생겨 틈으로 빠져나갑니다. 기류는 실제(약 0.05–0.2 m/s)보다 2.4배 빠르게 보여 줍니다.</p>
+  <p class="note">점 하나하나가 CO₂(주황)와 틈으로 들어온 외기(파랑)입니다. 주황 점의 수는 그 시각의 측정 농도에 맞춰지고, 재생하면 재실자에게서 생겨(11주차 p.14 "사람이 내는 CO₂") 틈으로 빠져나갑니다(누기). 실내 기류의 방향과 속도는 강의에 없는 시각화용 추정이고, 보기 쉽게 실제보다 빠르게 움직입니다.</p>
   <div class="calc">
     <div class="eq">C(t) = G/(nV)·(1 − e<sup>−nt</sup>) + (C<sub>0</sub> − C<sub>i</sub>)·e<sup>−nt</sup> + C<sub>i</sub></div>
     <div class="stats" id="flowStats"></div>
     <p class="note" id="flowNote"></p>
+    <p class="note src"><b>강의 근거</b> 10주차 · 틈새바람(침기·누기) p.12, 압력차 요인과 온도차(굴뚝효과) p.13, 제3종 환기(화장실·주방 배기, 부압) p.11, 측정 항목·1분 간격 p.35, Case 1·2 p.36 / 11주차 · CO₂ 농도 계산식 p.15, 완전혼합 p.14</p>
   </div>
 </aside>
 
@@ -313,7 +317,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
     <div class="eyebrow">11주차 과제 · 계측 데이터 활용</div>
     <h2>Q1 · Q2 우리 방 계산</h2>
   </div>
-  <p class="note">가정: 외기 CO₂ 420 ppm · 재실자 1명당 CO₂ 발생량 0.018 m³/h · Build-up 때 침기량 = Q1 값 · 완전혼합</p>
+  <p class="note">가정 (11주차 p.30): 외기 CO₂ 420 ppm · 재실자 1명당 CO₂ 발생량 0.018 m³/h · Build-up 때 침기량 = Q1 값 · 완전혼합 (p.14)</p>
   <section class="qcard">
     <div class="qhead"><span class="qno">Q1</span><b>Decay 데이터로 공기교환율 n과 침기량 Q</b></div>
     <label class="pick" for="q1Start">0분 값 (문을 닫은 뒤 첫 값)
@@ -324,6 +328,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
     <svg class="chart" id="q1Chart" viewBox="0 0 320 130" role="img" aria-label="감소 구간 그래프"></svg>
     <div class="stats" id="q1Stats"></div>
     <p class="note" id="q1Note"></p>
+    <p class="note src"><b>강의 근거</b> 11주차 p.29 예제4·p.30 Q1: 재실자가 없으므로 G = 0 → C(t) − C<sub>i</sub> = (C<sub>0</sub> − C<sub>i</sub>)e<sup>−nt</sup>. 시정수 τ = 1/n (p.22), 반감기 0.693/n (p.21·26)</p>
   </section>
   <section class="qcard">
     <div class="qhead"><span class="qno">Q2</span><b>계속 머물러도 1,000 ppm 이하가 되려면</b></div>
@@ -331,6 +336,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
     <div class="eqb" id="q2Eq"></div>
     <div class="stats" id="q2Stats"></div>
     <p class="note" id="q2Note"></p>
+    <p class="note src"><b>강의 근거</b> 11주차 p.20 정상상태 C<sub>ss</sub> = 외기 + 발생량 ÷ 환기량, p.19 1 m³/m³ = 10<sup>6</sup> ppm, p.10 1인당 필요환기량 29–36 m³/h·인, p.4 실내 기준 1,000 ppm</p>
   </section>
   <section class="qcard">
     <div class="qhead"><span class="qno">계산</span><b>인원과 환기횟수를 바꿔 보기</b></div>
@@ -346,6 +352,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
       <svg class="chart" id="simChart" viewBox="0 0 320 140" role="img" aria-label="계산 결과 그래프"></svg>
     </figure>
     <div class="stats" id="simStats"></div>
+    <p class="note src" id="simNote"></p>
   </section>
 </aside>
 
@@ -1256,7 +1263,7 @@ function q2() {
 }
 
 /* ---------------- airflow (CO2 movement) layer ---------------- */
-// 겨울 저녁, 개구부 모두 닫힘: 실내(18.5–19.6 °C) > 외기 → 굴뚝효과(중성대 위 누기 / 아래 침기)
+// 겨울 저녁, 개구부 모두 닫힘: 실내(18.5–19.6 °C) > 외기 → 굴뚝효과(압력 경계 위 누기 / 아래 침기, 10주차 p.13)
 // + 실내 자연대류(차가운 창 하강기류 → 바닥 기류 → 발열체 상승기류 → 천장 기류 → 창)
 const flow = new THREE.Group(); flow.visible = false; root.add(flow);
 const FCOL = { in: 0x2f7fd0, out: 0xe0572a, plume: 0xd99a2b, cold: 0x4fb0c6, mix: 0x8b939b };
@@ -1292,11 +1299,11 @@ for (const o of OCC) {
   const side = o.x < 1.27 ? 0.65 : -0.65;
   addPath('plume', [...up, [o.x + side * 0.6, H - 0.07, o.z + (toWindow ? -0.15 : 0.15)], [o.x + side, H - 0.1, o.z + (toWindow ? -0.3 : 0.3)]], { case: 'c1', speed: 0.26 });
 }
-// 3) 침기 (중성대 아래): 찬 외기·복도 공기는 들어오자마자 바닥으로 깔린다
+// 3) 침기 (압력 경계 아래): 찬 외기·복도 공기는 들어오자마자 바닥으로 깔린다
 const LK = { speed: LEAK, r: 0.006, gap: 0.28 };
 addPath('in', [[0.95, 0.905, -0.6], [0.95, 0.905, -0.2], [0.95, 0.9, 0.0], [0.97, 0.86, 0.3], [0.99, 0.55, 0.43], [1.0, 0.28, 0.62], [1.03, 0.07, 1.2], [1.08, 0.06, 2.0]], LK);
 addPath('in', [[0.48, 0.012, R.d + 0.65], [0.48, 0.012, R.d + 0.2], [0.48, 0.015, R.d - 0.02], [0.52, 0.03, 4.75], [0.72, 0.05, 4.25], [0.95, 0.07, 3.75]], LK);
-// 4) 누기 (중성대 위) + 배기 덕트 쪽 흡인
+// 4) 누기 (압력 경계 위) + 배기 덕트 쪽 흡인
 addPath('out', [[0.85, H - 0.1, 0.55], [0.85, 2.03, 0.12], [0.85, 1.98, 0.0], [0.85, 1.98, -0.25], [0.85, 1.98, -0.6]], LK);
 addPath('out', [[2.0, H - 0.1, 0.9], [2.4, 2.17, 0.18], [2.5, 2.17, 0.0], [2.5, 2.17, -0.3], [2.5, 2.17, -0.6]], LK);
 addPath('out', [[0.85, H - 0.1, 4.4], [0.55, 2.06, 5.0], [0.48, 2.0, R.d - 0.02], [0.48, 2.0, R.d + 0.25], [0.48, 2.0, R.d + 0.65]], LK);
@@ -1328,14 +1335,14 @@ for (const [type, text, x, y, z] of leaks) {
 }
 flowLabel('창 하강 냉기류', 'cold', 1.0, 1.45, 0.08);
 flowLabel('바닥 기류', 'cold', 1.15, 0.12, 2.3);
-// neutral pressure plane (중성대)
+// height where indoor and outdoor pressure are equal (압력 경계, 추정 H/2)
 {
   const npl = new THREE.Mesh(new THREE.ShapeGeometry(shape(L.floor)), new THREE.MeshBasicMaterial({ color: 0x2d5277, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false }));
   npl.rotation.x = -Math.PI / 2; npl.position.y = hW; flow.add(npl);
   const pts = L.floor.map(([x, z]) => new THREE.Vector3(x, hW, z)); pts.push(pts[0].clone());
   const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0x2d5277, dashSize: 0.08, gapSize: 0.05 }));
   line.computeLineDistances(); flow.add(line);
-  flowLabel(`중성대 (추정) · 약 ${hW.toFixed(2)} m`, 'npl', R.w, hW, 4.5);
+  flowLabel(`압력 경계 (추정) · 약 ${hW.toFixed(2)} m`, 'npl', R.w, hW, 4.5);
   flowLabel('위: 실내압 > 외부 → 누기', 'out', R.w, hW + 0.42, 4.5);
   flowLabel('아래: 실내압 < 외부 → 침기', 'in', R.w, hW - 0.4, 4.5);
 }
@@ -1355,7 +1362,7 @@ for (const o of OCC) {
   lb.userData.occ = true;
 }
 
-/* ---- estimated air velocity field [m/s] (local room coordinates) ----
+/* ---- estimated air velocity field [m/s] — 보충(강의 범위 밖) 시각화용 추정 ----
    질량보존(∇·v = 0)을 만족하도록 유선함수로 만든 장:
    ① 창 쪽 셀과 현관 쪽 셀이 방 가운데(z ≈ 3.2 m)에서 만나 위로 올라가는 2셀 자연대류
       (차가운 창·현관문 쪽에서 내려오고, 바닥을 따라 가운데로 모였다가, 천장을 따라 되돌아감)
@@ -1775,11 +1782,11 @@ function renderSheets() {
   document.getElementById('flowStats').innerHTML =
     stat(`${f2(Q1.n)} 회/h`, '공기교환율 n (Q1, 틈새바람만)') +
     stat(`${f2(Q1.Q, 1)} m³/h`, '침기량 Q = n·V') +
-    stat(`${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h`, '1인당 CO₂ 발생량 (측정값 역산)') +
+    stat(`${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h`, '1인당 CO₂ 발생량 (물질수지 역산, p.14)') +
     stat(`${f2(Q1.half, 1)} h`, '초과농도 반감기 ln2 / n');
   document.getElementById('flowNote').textContent =
     `개구부가 모두 닫혀 있어 실내외 온도차(굴뚝효과)로 생긴 압력차 때문에 틈새로만 공기가 오간다고 보고 그린 추정 경로입니다. ` +
-    `틈새로 오가는 공기는 시간당 ${f2(Q1.Q, 1)} m³로 방 공기의 ${Math.round(Q1.n * 100)}%뿐이라, 실내에서는 대류 순환이 공기를 섞고 틈새는 그중 일부를 내보냅니다. 재실자 위치는 가정입니다.`;
+    `틈새로 오가는 공기(Q1)는 시간당 ${f2(Q1.Q, 1)} m³로 방 공기의 ${Math.round(Q1.n * 100)}%뿐입니다. 방 안 공기는 골고루 섞인다고 보고(완전혼합) 그중 일부가 틈으로 빠져나가는 것으로 그렸습니다. 재실자 위치는 가정입니다.`;
 }
 function drawChartCursor() {
   if (!flowOn) { chartEl.innerHTML = chartBase; return; }
@@ -1821,7 +1828,7 @@ function renderQ() {
     stat(`${f2(Q1.tau, 1)} h`, '시정수 τ = 1/n') + stat(`${f2(Q1.half, 1)} h`, '반감기 0.693/n');
   document.getElementById('q1Note').textContent =
     `${hm(at(iPeak + 1))}–${hm(at(iDip))}의 일시 하락은 퇴실하며 문을 연 영향으로 보고, 그 뒤 첫 값을 0분으로 잡았습니다. ` +
-    `감소 구간 전체 회귀로 구하면 n = ${f2(fit.n)} 회/h (R² ${f2(fit.r2, 3)}). 신축 공동주택 기준 0.5 회/h의 ${Math.round(Q1.n / 0.5 * 100)}% 수준입니다.`;
+    `신축 공동주택 기준 0.5 회/h(p.9)의 ${Math.round(Q1.n / 0.5 * 100)}% 수준입니다. 보충 확인(강의 외): 감소 구간 전체에 같은 식을 맞추면 n = ${f2(fit.n)} 회/h로 2점 계산과 비슷합니다.`;
   // Q1 chart: the decay part
   {
     const W2 = 320, H2 = 130, l2 = 34, r2 = 10, t2 = 10, b2 = 20, a = Math.max(0, iPeak - 6), b = NPTS - 1;
@@ -1847,10 +1854,12 @@ function renderQ() {
     `Q ≥ G / [(1,000 − ${CO})×10<sup>−6</sup>]<br>&nbsp;&nbsp;= ${f2(Q2.G, 3)} / ${f2((1000 - CO) * 1e-6, 6)} = <b>${f2(Q2.Qreq, 1)} m³/h</b>`;
   document.getElementById('q2Stats').innerHTML =
     stat(`${f2(Q2.Qreq, 1)} m³/h`, '필요 환기량 Q') + stat(`${f2(Q2.nReq)} 회/h`, '필요 환기횟수 n = Q/V') +
-    stat(`${f2(Q2.perPerson, 1)} m³/h·인`, '1인당 환기량 (강의 29–36)') + stat(`약 ${Math.round(Q2.ratio)}배`, `지금 침기량 ${f2(Q1.Q, 1)} m³/h 대비`);
+    stat(`${f2(Q2.perPerson, 1)} m³/h·인`, '1인당 환기량 (p.10: 29–36)') + stat(`약 ${Math.round(Q2.ratio)}배`, `지금 침기량 ${f2(Q1.Q, 1)} m³/h 대비`);
   document.getElementById('q2Note').innerHTML =
     `지금처럼 틈새바람만 있는 상태에서 ${NOCC}명이 계속 머물면 정상상태 농도는 ${CO} + ${f2(Q2.G, 3)}/${f2(Q1.Q, 2)}×10<sup>6</sup> ≈ <b>${fmt(Q2.cssNow)} ppm</b>까지 올라갑니다. ` +
     `참고로 Q2-2 방식으로 보면, 같은 시작 농도 ${fmt(co2[iStart])} ppm에서 1시간 머물 때 <b>${Q2.Nmin ?? '–'}명</b>부터 1,000 ppm을 넘습니다.`;
+  document.getElementById('simNote').innerHTML = `<b>강의 근거</b> 11주차 p.15 C(t) = G/(nV)(1 − e<sup>−nt</sup>) + (C<sub>0</sub> − C<sub>i</sub>)e<sup>−nt</sup> + C<sub>i</sub>로 계산. ` +
+    `측정에서 거꾸로 구한 1인당 발생량은 약 ${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h (${(measuredGen(Q1.n) * 1000 / 60).toFixed(2)} L/min)로, p.24 그림의 Office Work 0.3 L/min(= 18 L/h, 가정값 0.018)보다 조금 큽니다.`;
   renderSim();
 }
 function renderSim() {
@@ -1877,7 +1886,7 @@ function renderSim() {
     stat(`${fmt(ser[pk])} ppm`, `계산 최고 · ${hm(at(pk))}`) +
     stat(over < 0 ? '넘지 않음' : hm(at(over)), '1,000 ppm 넘는 시각') +
     stat(N > 0 ? `${fmt(CO + N * GP / (n * VOL) * 1e6)} ppm` : `${CO} ppm`, '계속 머물 때 정상상태 C<sub>ss</sub>') +
-    stat(`${fmt(Math.sqrt(se / cnt))} ppm`, '측정값과의 차이 (RMSE)');
+    stat(`${fmt(Math.sqrt(se / cnt))} ppm`, '측정값과의 평균 차이 (보충)');
 }
 function setQ(on) {
   if (on && flowOn) setFlow(false);

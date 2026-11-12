@@ -318,13 +318,13 @@ labels2 = [
 for x, z, s, c in labels2:
     ax2.text(x, -z, s, fontsize=5.8, color=c, ha="center", va="center", zorder=10, bbox=dict(fc="white", ec="none", pad=0.5))
 ax2.text(S["x"] - 0.05, -(S["z"] - 0.25), "측정기", fontsize=5.8, color=SIG, ha="center", zorder=10, fontweight="bold")
-header(fig2, 14, "틈새바람 · CO₂ 이동 경로 추정도", "개구부를 모두 닫은 상태 · 실내외 온도차(굴뚝효과)에 의한 압력차로 틈새를 통해서만 공기가 오간다고 가정", "평면 1/60 · 단면 1/40")
+header(fig2, 14, "틈새바람 · CO₂ 이동 경로 추정도", "개구부를 모두 닫은 상태 · 온도차(굴뚝효과)에 의한 압력차로 틈새로만 공기가 오간다고 가정 (10주차 p.12–13)", "평면 1/60 · 단면 1/40")
 
 # side text: legend + numbers
 tx0 = 14 + pw2 + 6
 ftext(fig2, tx0, 30, "범례", fontsize=7.5, fontweight="bold", color=INK, va="top")
 leg = [(C_IN, "침기", "외부·복도 공기가 틈새로 유입"), (C_OUT, "누기", "CO₂가 섞인 실내 공기가 틈새로 유출"),
-       (C_PL, "호기 상승·실내 확산", "재실자 A·B·C(위치 가정)의 날숨"), (C_CO, "창 주변 하강 냉기류", "차가운 유리면에서 식은 공기")]
+       (C_PL, "상승기류 (보충)", "따뜻한 공기는 위로 (10주차 p.13), 재실자 위치 가정"), (C_CO, "하강·바닥 기류 (보충)", "완전혼합(11주차 p.14)을 그림으로 보인 추정")]
 for k, (c, a_, b_) in enumerate(leg):
     y = 37 + k * 9
     lx = fig2.add_axes([tx0 / PAGE_W, 1 - (y + 2) / PAGE_H, 9 / PAGE_W, 3 / PAGE_H]); lx.axis("off"); lx.set_xlim(0, 9); lx.set_ylim(0, 3)
@@ -335,7 +335,7 @@ ny = 80
 ftext(fig2, tx0, ny, "감소형(Case 2) 구간 · Q1", fontsize=7.5, fontweight="bold", color=INK, va="top")
 ftext(fig2, tx0, ny + 6, r"$C(t) = C_o + (C_0 - C_o)\,e^{-n\,t}$", fontsize=8, color=DIM, va="top")
 nums = [
-    (f"{n_ach:.2f} 회/h", f"공기교환율 n (회귀 {n_reg:.2f}, R² {r2:.3f})"),
+    (f"{n_ach:.2f} 회/h", f"공기교환율 n (2점법, 11주차 p.30)"),
     (f"{n_ach * VOL:.1f} m³/h", "침기량 Q = n·V"),
     (f"{GEN / 3 * 1000:.0f} L/h", "1인당 CO₂ 발생량 (증가형 물질수지)"),
     (f"{math.log(2) / n_ach:.1f} h", "초과농도 반감기 0.693/n"),
@@ -372,7 +372,7 @@ sx.add_patch(Rectangle((I["shoeArea"]["z0"], 0), I["shoeArea"]["z1"] - I["shoeAr
 # neutral pressure level
 npl = H / 2
 sx.plot([0, D], [npl, npl], color=DIM, lw=0.7, ls=(0, (5, 3)))
-sx.text(D / 2 + 0.6, npl + 0.05, f"중성대 (NPL, 추정 H/2 약 {npl:.2f} m)", fontsize=6.2, color=DIM, ha="center", va="bottom")
+sx.text(D / 2 + 0.6, npl + 0.05, f"압력 경계 높이 (추정, H/2 약 {npl:.2f} m)", fontsize=6.2, color=DIM, ha="center", va="bottom")
 sx.text(2.9, 1.75, "실내압 > 외부  →  위쪽 틈으로 누기", fontsize=6.0, color=C_OUT, ha="center")
 sx.text(1.75, 0.42, "실내압 < 외부  →  아래쪽 틈으로 침기", fontsize=6.0, color=C_IN, ha="center")
 # occupants (projected) + plumes
@@ -419,9 +419,9 @@ pp.text(0.55, H * 0.92, "+ΔP", fontsize=6, color=C_OUT, ha="center")
 pp.text(-0.55, H * 0.06, "-ΔP", fontsize=6, color=C_IN, ha="center")
 pp.text(0, -0.08, "실내-실외\n압력차", fontsize=5.6, color=MUTED, ha="center", va="top", linespacing=1.3)
 ftext(fig2, 14, sec_top + sh + 8, "· 11월 저녁 측정: 실내 18.5–19.6 °C > 외기 → 따뜻한 실내 공기가 위로 올라가 상부 틈으로 빠지고(누기), 하부 틈으로 외기가 들어온다(침기).", fontsize=6, color=INK, va="top")
-ftext(fig2, 14, sec_top + sh + 13, "· 실내는 차가운 창·현관 쪽에서 내려온 공기가 바닥을 따라 가운데로 모여 올라가는 2셀 대류로 섞인다(완전혼합 가정의 근거). Case 1에서는 날숨이 천장으로 올라가 퍼진다.", fontsize=6, color=INK, va="top")
+ftext(fig2, 14, sec_top + sh + 13, "· 실내 공기는 골고루 섞인다고 본다(완전혼합, 11주차 p.14). 창·현관 쪽 하강 기류와 가운데 상승 기류는 이를 그림으로 보인 보충 추정이다.", fontsize=6, color=INK, va="top")
 ftext(fig2, 14, sec_top + sh + 18, "· Case 2에서는 발생원이 없으므로 침기·누기에 의한 희석만으로 농도가 지수적으로 감소하며, 그 감소 속도가 기밀성(n)을 나타낸다.", fontsize=6, color=INK, va="top")
-ftext(fig2, 14, sec_top + sh + 23, "· 화장실 배기구와 주방 후드 덕트는 수직 덕트의 굴뚝효과로 약한 흡인(부압)이 생긴다고 가정했다. 모든 경로는 측정값이 아닌 추정이다.", fontsize=6, color=INK, va="top")
+ftext(fig2, 14, sec_top + sh + 23, "· 화장실·주방은 배기 쪽이라 부압으로 본다(제3종 환기, 10주차 p.11). 틈 위치는 10주차 p.13 그림(창틀 틈·문 틈·배관 관통부)을 따랐고, 모든 경로는 측정값이 아닌 추정이다.", fontsize=6, color=INK, va="top")
 title_block(fig2, 14, PAGE_W - 28, 264, [
     ("과목", "환경설비실험", "실험", "실내 CO₂ 농도 측정 (10주차)", "축척", "평면 1/60 · 단면 1/40", "단위", "mm, m"),
     ("도면", "틈새바람 추정도", "비고", "경로는 압력차 원리에 따른 추정, 측정값 아님", "작성일", "2026.11.11", "도면번호", "A-02"),
@@ -430,23 +430,23 @@ title_block(fig2, 14, PAGE_W - 28, 264, [
 
 # =============== PAGE 3: 11주차 과제 Q1 · Q2 ===============
 fig3 = plt.figure(figsize=(PAGE_W * MM, PAGE_H * MM))
-header(fig3, 14, "11주차 과제 Q1 · Q2 — 우리 방 계측 데이터 활용", "가정: 외기 CO₂ 420 ppm · 재실자 1명당 CO₂ 발생량 0.018 m³/h · Build-up 때 침기량 = Q1 · 완전혼합", "A-03")
+header(fig3, 14, "11주차 과제 Q1 · Q2 — 우리 방 계측 데이터 활용", "가정 (11주차 p.30): 외기 CO₂ 420 ppm · 재실자 1명당 CO₂ 발생량 0.018 m³/h · Build-up 때 침기량 = Q1 · 완전혼합 (p.14)", "A-03")
 hm_ = lambda i: rows[i][0][11:16]
 LX = 14
 # ---- Q1 ----
 ftext(fig3, LX, 30, "Q1.  Decay 데이터로 공기교환율 n과 침기량 Q", fontsize=10, fontweight="bold", color=INK, va="top")
-ftext(fig3, LX, 37, f"퇴실하며 문을 연 {hm_(ip + 1)}–{hm_(iq_dip)}의 일시 하락 뒤, 문을 닫은 뒤 첫 값을 0분으로 했다.", fontsize=7, color=MUTED, va="top")
-q1rows = [("0분 (문 닫은 뒤 첫 값)", f"{hm_(q1_i0)}", f"{co2[q1_i0]:,} ppm"), ("60분 뒤", f"{hm_(q1_i1)}", f"{co2[q1_i1]:,} ppm"), ("외기 Ci", "가정", f"{CO} ppm"), ("실 체적 V", "실측 치수", f"{VOL:.1f} m³")]
+ftext(fig3, LX, 37, f"방법: 11주차 p.29 예제4·p.30 Q1 (G = 0 → C(t) - Ci = (C0 - Ci)e^(-nt)). 퇴실하며 문을 연 {hm_(ip + 1)}–{hm_(iq_dip)}의 일시 하락 뒤, 문을 닫은 뒤 첫 값을 0분으로 했다.", fontsize=7, color=MUTED, va="top")
+q1rows = [("0분 (문 닫은 뒤 첫 값)", f"{hm_(q1_i0)}", f"{co2[q1_i0]:,} ppm"), ("60분 뒤", f"{hm_(q1_i1)}", f"{co2[q1_i1]:,} ppm"), ("외기 Ci", "가정", f"{CO} ppm"), ("실 체적 V", "실측+주방 깊이 추정", f"{VOL:.1f} m³")]
 for k, (a_, b_, c_) in enumerate(q1rows):
     y = 45 + k * 5.2
-    ftext(fig3, LX, y, a_, fontsize=7.4, color=MUTED, va="top"); ftext(fig3, LX + 42, y, b_, fontsize=7.4, color=INK, va="top"); ftext(fig3, LX + 64, y, c_, fontsize=7.4, color=INK, va="top", fontweight="bold")
+    ftext(fig3, LX, y, a_, fontsize=7.4, color=MUTED, va="top"); ftext(fig3, LX + 42, y, b_, fontsize=7.4, color=INK, va="top"); ftext(fig3, LX + 74, y, c_, fontsize=7.4, color=INK, va="top", fontweight="bold")
 ftext(fig3, LX, 69, r"$n = \frac{1}{t}\,\ln\frac{C_0 - C_i}{C(t) - C_i}$" + f"  =  ln[({co2[q1_i0]:,} - {CO}) / ({co2[q1_i1]:,} - {CO})] / 1 h  =  {n_ach:.3f} 회/h", fontsize=8.6, color=DIM, va="top")
 ftext(fig3, LX, 79, f"Q = n · V = {n_ach:.3f} × {VOL:.1f} = {n_ach * VOL:.1f} m³/h", fontsize=8.6, color=DIM, va="top")
-res1 = [(f"{n_ach:.2f} 회/h", "공기교환율 n"), (f"{n_ach * VOL:.1f} m³/h", "침기량 Q"), (f"{1 / n_ach:.1f} h", "시정수 τ = 1/n"), (f"{math.log(2) / n_ach:.1f} h", "반감기 = 0.693/n")]
+res1 = [(f"{n_ach:.2f} 회/h", "공기교환율 n"), (f"{n_ach * VOL:.1f} m³/h", "침기량 Q"), (f"{1 / n_ach:.1f} h", "시정수 τ = 1/n (p.22)"), (f"{math.log(2) / n_ach:.1f} h", "반감기 = 0.693/n (p.21)")]
 for k, (v, l) in enumerate(res1):
     x = LX + k * 46
     ftext(fig3, x, 88, v, fontsize=12, color=INK, va="top", fontweight="bold"); ftext(fig3, x, 95, l, fontsize=6.8, color=MUTED, va="top")
-ftext(fig3, LX, 102, f"검증: 감소 구간 전체를 지수 감쇠로 회귀하면 n = {n_reg:.3f} 회/h (R² {r2:.3f}). 신축 공동주택 기준 0.5 회/h의 {n_ach / 0.5 * 100:.0f}% 수준으로, 창·문을 닫으면 틈새바람만으로는 환기가 매우 적다.", fontsize=6.8, color=INK, va="top")
+ftext(fig3, LX, 102, f"신축 공동주택 기준 0.5 회/h(11주차 p.9)의 {n_ach / 0.5 * 100:.0f}% 수준으로, 창·문을 닫으면 틈새바람만으로는 환기가 매우 적다.\n보충 확인(강의 외): 감소 구간 전체에 같은 식을 맞추면 n = {n_reg:.3f} 회/h.", fontsize=6.8, color=INK, va="top")
 # decay chart
 cax = fig3.add_axes([LX / PAGE_W, 1 - 152 / PAGE_H, 120 / PAGE_W, 42 / PAGE_H])
 a_ = ip - 6
@@ -463,10 +463,10 @@ for sp_ in ("top", "right"):
 # ---- Q2 ----
 G_ = 3 * 0.018; Qreq = G_ / ((1000 - CO) * 1e-6); nreq = Qreq / VOL; css_now = CO + G_ / (n_ach * VOL) * 1e6
 ftext(fig3, LX, 162, "Q2-1.  Build-up에서 1,000 ppm을 넘었으므로: 계속 머물러도 1,000 ppm 이하가 되려면", fontsize=10, fontweight="bold", color=INK, va="top")
-ftext(fig3, LX, 169, f"측정 최고 {co2[ip]:,} ppm ({hm_(ip)}) > 1,000 ppm → Q2-1 해당. 정상상태에서는 들어오고 나가는 CO₂가 같아진다 (V·dC/dt = 0).", fontsize=7, color=MUTED, va="top")
+ftext(fig3, LX, 169, f"측정 최고 {co2[ip]:,} ppm ({hm_(ip)}) > 1,000 ppm → Q2-1 해당. 정상상태에서는 들어오고 나가는 CO₂가 같아진다 (11주차 p.20, 단위 환산 p.19).", fontsize=7, color=MUTED, va="top")
 ftext(fig3, LX, 177, r"$C_{ss} = C_i + \frac{G}{Q} \leq 1000\ \mathrm{ppm}\quad\Rightarrow\quad Q \geq \frac{G}{(1000 - C_i)\times 10^{-6}}$", fontsize=9, color=DIM, va="top")
 ftext(fig3, LX, 189, f"G = 3명 × 0.018 = {G_:.3f} m³/h   →   Q ≥ {G_:.3f} / {(1000 - CO) * 1e-6:.6f} = {Qreq:.1f} m³/h", fontsize=8.6, color=DIM, va="top")
-res2 = [(f"{Qreq:.1f} m³/h", "필요 환기량 Q"), (f"{nreq:.2f} 회/h", "필요 환기횟수 n = Q/V"), (f"{Qreq / 3:.1f} m³/h·인", "1인당 (강의 기준 29–36)"), (f"약 {Qreq / (n_ach * VOL):.0f}배", f"현재 침기량 {n_ach * VOL:.1f} m³/h 대비")]
+res2 = [(f"{Qreq:.1f} m³/h", "필요 환기량 Q"), (f"{nreq:.2f} 회/h", "필요 환기횟수 n = Q/V"), (f"{Qreq / 3:.1f} m³/h·인", "1인당 (11주차 p.10: 29–36)"), (f"약 {Qreq / (n_ach * VOL):.0f}배", f"현재 침기량 {n_ach * VOL:.1f} m³/h 대비")]
 for k, (v, l) in enumerate(res2):
     x = LX + k * 46
     ftext(fig3, x, 198, v, fontsize=12, color=INK, va="top", fontweight="bold"); ftext(fig3, x, 205, l, fontsize=6.8, color=MUTED, va="top")
@@ -496,7 +496,7 @@ for sp_ in ("top", "right"):
     mx_.spines[sp_].set_visible(False)
 rmse = math.sqrt(sum((m1[i] - co2[i]) ** 2 for i in range(i0, N)) / (N - i0))
 ftext(fig3, LX + 126, 224, "모델 확인", fontsize=8, fontweight="bold", color=INK, va="top")
-ftext(fig3, LX + 126, 230, f"n = {n_ach:.2f}, 3명 × 0.018로 계산한\n최고 {max(v for v in m1 if v):,.0f} ppm (측정 {co2[ip]:,}), RMSE {rmse:.0f}\n측정 역산 1인당 발생량 약 {gen_q1 * 1000:.0f} L/h\n→ 가정값 18 L/h보다 조금 큼\nn = {nreq:.2f}이면 3명이어도 1,000 이하", fontsize=6.4, color=INK, va="top", linespacing=1.5)
+ftext(fig3, LX + 126, 230, f"n = {n_ach:.2f}, 3명 × 0.018로 계산한\n최고 {max(v for v in m1 if v):,.0f} ppm (측정 {co2[ip]:,}), 평균 차이 {rmse:.0f} ppm (보충)\n측정 역산 1인당 발생량 약 {gen_q1 * 1000:.0f} L/h\n→ p.24 Office Work 0.3 L/min(18 L/h)보다 조금 큼\nn = {nreq:.2f}이면 3명이어도 1,000 이하", fontsize=6.4, color=INK, va="top", linespacing=1.5)
 title_block(fig3, 14, PAGE_W - 28, 264, [
     ("과목", "환경설비실험", "과제", "11주차 계측 데이터 활용 Q1 · Q2", "식", "11주차 CO₂ 농도 계산식", "단위", "ppm, m³/h"),
     ("도면", "Q1 · Q2 계산", "비고", "외기 420 ppm, 1인 0.018 m³/h 가정", "작성일", "2026.11.12", "번호", "A-03"),
