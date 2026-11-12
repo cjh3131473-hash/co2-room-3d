@@ -1827,7 +1827,7 @@ function renderQ() {
     stat(`${f2(Q1.n)} 회/h`, '공기교환율 n') + stat(`${f2(Q1.Q, 1)} m³/h`, '침기량 Q') +
     stat(`${f2(Q1.tau, 1)} h`, '시정수 τ = 1/n') + stat(`${f2(Q1.half, 1)} h`, '반감기 0.693/n');
   document.getElementById('q1Note').textContent =
-    `${hm(at(iPeak + 1))}–${hm(at(iDip))}의 일시 하락은 퇴실하며 문을 연 영향으로 보고, 그 뒤 첫 값을 0분으로 잡았습니다. ` +
+    `${hm(at(iPeak + 1))}–${hm(at(iDip))}은 퇴실하며 문을 열었던 시간이라 농도가 잠깐 떨어졌고, 문을 닫은 뒤 첫 값을 0분으로 잡았습니다. ` +
     `신축 공동주택 기준 0.5 회/h(p.9)의 ${Math.round(Q1.n / 0.5 * 100)}% 수준입니다. 보충 확인(강의 외): 감소 구간 전체에 같은 식을 맞추면 n = ${f2(fit.n)} 회/h로 2점 계산과 비슷합니다.`;
   // Q1 chart: the decay part
   {
