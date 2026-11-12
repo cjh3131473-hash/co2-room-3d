@@ -235,7 +235,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
 
 /* ---- 발표 모드 (presentation/ 주소 전용) ---- */
 :root { --ps: 1; }
-.present .toolbar, .present .hint { display: none; }
+.present .toolbar, .present .hint, .present .note.src { display: none; }
 .present.pfree .toolbar { display: flex; }
 .present .titleblock h1 { font-size: 20px; }
 .present .flow { transform: scale(var(--ps)); transform-origin: left bottom; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-height: calc((100% - 170px) / var(--ps)); }
@@ -411,7 +411,7 @@ button.tog[aria-pressed="true"]::before { background: currentColor; }
 <section class="pcap sheet" id="pcap" hidden aria-live="polite">
   <div class="pcaphead"><span class="pno" id="pcapNo"></span><h2 id="pcapTitle"></h2></div>
   <ul id="pcapBody"></ul>
-  <p class="pend" id="pend" hidden><b>1조</b> <span id="pendTeam"></span> · 들어 주셔서 감사합니다. 질문 받겠습니다.</p>
+  <p class="pend" id="pend" hidden><b>1조</b> <span id="pendTeam"></span> · 들어 주셔서 감사합니다.</p>
   <div class="pnav">
     <button type="button" id="pprev">← 이전</button>
     <div class="pdots" id="pcapDots"></div>
@@ -1623,8 +1623,21 @@ function applyViewOffset() {
     const ps = Math.max(1, Math.min(1.35, w / 1400)); document.documentElement.style.setProperty('--ps', ps.toFixed(3));
     if (mode !== 'inside') { off = (flowOn || qOn) ? -Math.min(230, w * 0.15) * ps : infoHidden ? 0 : off; if (!document.body.classList.contains('pfree')) offY += Math.min(110, h * 0.1); }
   }
-  if (off || offY) camera.setViewOffset(w, h, off, offY, w, h); else camera.clearViewOffset();
+  VO.tx = off; VO.ty = offY;
+  if (!PRESENT || !VO.ready) { VO.x = off; VO.y = offY; setViewOffsetNow(); }
+}
+const VO = { x: 0, y: 0, tx: 0, ty: 0, ready: false };
+function setViewOffsetNow() {
+  const w = innerWidth, h = innerHeight;
+  if (Math.abs(VO.x) > 0.5 || Math.abs(VO.y) > 0.5) camera.setViewOffset(w, h, VO.x, VO.y, w, h); else camera.clearViewOffset();
   camera.updateProjectionMatrix();
+}
+function easeViewOffset(dt) {
+  if (VO.x === VO.tx && VO.y === VO.ty) return;
+  const a = Math.min(1, dt * 5);
+  VO.x += (VO.tx - VO.x) * a; VO.y += (VO.ty - VO.y) * a;
+  if (Math.abs(VO.tx - VO.x) < 0.5 && Math.abs(VO.ty - VO.y) < 0.5) { VO.x = VO.tx; VO.y = VO.ty; }
+  setViewOffsetNow();
 }
 function setMode(m) {
   mode = m;
@@ -1635,10 +1648,16 @@ function setMode(m) {
   if (m !== 'overview') setSpin(false);
 }
 const fitK = () => Math.max(1, 1.25 / camera.aspect);
-function goOverview() {
+function goOverview(done) {
   setMode('overview'); setOrbitLimits(false);
   const k = fitK();
-  flyTo(new THREE.Vector3(5.0 * k, 6.0 * k, 6.4 * k), new THREE.Vector3(0, 0.45, 0.15), 38);
+  flyTo(new THREE.Vector3(5.0 * k, 6.0 * k, 6.4 * k), new THREE.Vector3(0, 0.45, 0.15), 38, done);
+}
+// same distance and height as the overview, orbited around the room by `deg` (positive = model turns left on screen)
+function goAngle(deg, done) {
+  setMode('overview'); setOrbitLimits(false);
+  const k = fitK(), r = Math.hypot(5.0, 6.4) * k, th = Math.atan2(5.0, 6.4) + deg * Math.PI / 180;
+  flyTo(new THREE.Vector3(r * Math.sin(th), 6.0 * k, r * Math.cos(th)), new THREE.Vector3(0, 0.45, 0.15), 38, done);
 }
 function goTop() {
   setMode('top'); setOrbitLimits(false);
@@ -1791,6 +1810,7 @@ function frame(now) {
   const ph = REDUCED ? 0.5 : (t * 0.8) % 1;
   pulse.scale.setScalar(1 + ph * 2.6); pulse.material.opacity = 0.85 * (1 - ph);
   glow.material.opacity = 0.65 + 0.25 * Math.sin(t * 3);
+  if (PRESENT) easeViewOffset(dt);
   if (flowOn) updateFlow(dt, t);
   const showLbl = labelsOn && !flowOn;
   for (const r of labelRecs) r.o.visible = showLbl && !(r.wallKey && walls[r.wallKey].cut);
@@ -1803,7 +1823,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight; applyViewOffset();
+  camera.aspect = innerWidth / innerHeight; VO.ready = false; applyViewOffset(); VO.ready = true;
   renderer.setSize(innerWidth, innerHeight); labelRenderer.setSize(innerWidth, innerHeight); updatePointScale();
 });
 
@@ -1976,6 +1996,18 @@ if (PRESENT) {
   document.getElementById('pcoverTeam').textContent = `1조 · ${TEAM.join(' · ')}`;
   document.getElementById('pendTeam').textContent = TEAM.join(' · ');
 
+  // 발표 화면에서는 패널 문장의 (몇 주차 p.몇) 표기를 지운다
+  const REF_RULES = [
+    [/\s*\((?:\d+주차\s*)?p\.\d+(?:[–-]\d+)?(?:\s*[·,]\s*(?:\d+주차\s*)?p\.\d+(?:[–-]\d+)?)*(?:\s*["“][^"”]*["”])?\)/g, ''],
+    [/\((?:\d+주차\s*)?p\.\d+(?:[–-]\d+)?:\s*([^)]*)\)/g, '(기준 $1)'],
+    [/,\s*(?:\d+주차\s*)?p\.\d+(?:[–-]\d+)?(?=\))/g, ''],
+  ];
+  const stripRefs = root => {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) { let t = n.nodeValue; for (const [re, to] of REF_RULES) t = t.replace(re, to); if (t !== n.nodeValue) n.nodeValue = t; }
+  };
+  for (const el of [qSheet, flowSheet, panel]) { stripRefs(el); new MutationObserver(() => stripRefs(el)).observe(el, { childList: true, subtree: true, characterData: true }); }
+
   const Q2 = q2();
   let iOver = iStart; while (iOver < iPeak && co2[iOver] <= 1000) iOver++;
   const n2 = v => v.toLocaleString('en-US');
@@ -1987,55 +2019,58 @@ if (PRESENT) {
     if (o.flow && !flowOn) setFlow(true);
     if (o.q && !qOn) setQ(true);
     infoHidden = !o.info; document.body.classList.toggle('info-right', !!o.info); syncSheets();
-    setSpin(!!o.spin && !REDUCED);
+    setSpin(false);
   };
+  // auto-rotation starts only once the camera has arrived (OrbitControls keeps auto-rotating even while disabled)
+  const spinAfter = idx => () => { if (cur === idx && !free && !REDUCED) setSpin(true); };
+  const FLOW_ANGLE = 35;                           // Case 1·2: model turned ~left (camera toward the bed-side wall), oblique so all three occupants show
   const STEPS = [
-    { title: DECK, cover: true, run() { reset({ spin: true }); goOverview(); } },
+    { title: DECK, cover: true, run() { reset(); goOverview(spinAfter(0)); } },
     { title: '측정 장소 · 자취방 원룸', body: [
         `가로 ${R.w.toFixed(2)} × 세로 ${R.d.toFixed(2)} m, 천장고 ${H.toFixed(2)} m (줄자 실측) + 주방 폭 ${(K.z1 - K.z0).toFixed(2)} m`,
-        `실 체적 V ≈ ${VOL.toFixed(1)} m³ — 환기횟수 n과 환기량 Q = n·V 계산에 사용 (11주차 p.9)`,
+        `실 체적 V ≈ ${VOL.toFixed(1)} m³ — 환기횟수 n과 환기량 Q = n·V 계산에 사용`,
         '방 사진 9장과 실측 치수로 만든 3D 모델, 드래그로 돌려 볼 수 있음'],
       run() { reset(); dimsOn = true; goTop(); } },
     { title: '측정 방법', body: [
-        `${S.model} CO₂ 측정기, 1분 간격 ${NPTS}회 기록 (10주차 p.26, p.35)`,
+        `${S.model} CO₂ 측정기, 1분 간격 ${NPTS}회 기록`,
         `전자레인지 선반 위에서 두 번째 칸, 전기포트 옆 · 바닥 위 약 ${S.y.toFixed(2)} m`,
         '창문·현관문·화장실 문 모두 닫음 · 20대 남성 3명 약 1시간 재실 후 퇴실'],
       run() { reset(); goSensor(); } },
     { title: '측정 결과', body: [
         `${hm(at(iStart))} ${n2(co2[iStart])} ppm → 3명 ${Math.round((iPeak - iStart) * MPS)}분 재실 → ${hm(at(iPeak))} 최고 ${n2(co2[iPeak])} ppm`,
-        `실내 기준 1,000 ppm (11주차 p.4)을 ${hm(at(iOver))}부터 넘음, 입실 약 ${Math.round((iOver - iStart) * MPS)}분 만`,
+        `실내 기준 1,000 ppm을 ${hm(at(iOver))}부터 넘음, 입실 약 ${Math.round((iOver - iStart) * MPS)}분 만`,
         `퇴실 후 ${hm(at(NPTS - 1))}까지 ${n2(co2[NPTS - 1])} ppm으로 아주 천천히 감소`],
       run() { reset({ info: true }); goOverview(); } },
     { title: 'Case 1 · 증가형 (3명 재실)', body: [
-        '재실자가 내쉰 CO₂가 위로 올라가 방 전체로 섞임 — 완전혼합 가정 (11주차 p.14)',
-        '아래 틈(창틀·현관문)으로 외기 유입 = 침기, 위 틈·배관 관통부로 유출 = 누기 (10주차 p.12–13)',
+        '재실자가 내쉰 CO₂가 위로 올라가 방 전체로 섞임 — 완전혼합 가정',
+        '아래 틈(창틀·현관문)으로 외기 유입 = 침기, 위 틈·배관 관통부로 유출 = 누기',
         '측정 시각이 재생되며 주황 점(CO₂)이 측정 농도만큼 늘어남'],
-      run() { reset({ flow: true }); goOverview(); setTime(iStart); playUntil = iPeak; setPlaying(true); } },
+      run() { reset({ flow: true }); goAngle(FLOW_ANGLE); setTime(iStart); playUntil = iPeak; setPlaying(true); } },
     { title: 'Case 2 · 감소형 (무인)', body: [
         '아무도 없으니 G = 0 → 틈새바람으로 들어온 외기에 희석되기만 함',
-        `창·문을 닫아 두면 아주 천천히 감소 → 감소 속도로 기밀성을 판단 (10주차 p.23)`,
+        `창·문을 닫아 두면 아주 천천히 감소 → 감소 속도로 기밀성을 판단`,
         `${hm(at(Q1.i0))} 문을 닫은 뒤부터 재생`],
-      run() { reset({ flow: true }); goOverview(); setTime(Q1.i0); playUntil = NPTS - 1; setPlaying(true); } },
+      run() { reset({ flow: true }); goAngle(FLOW_ANGLE); setTime(Q1.i0); playUntil = NPTS - 1; setPlaying(true); } },
     { title: 'Q1 · 공기교환율 n과 침기량 Q', body: [
-        `0분 ${hm(at(Q1.i0))} ${n2(Q1.c0)} ppm, 60분 ${hm(at(Q1.i1))} ${n2(Q1.c1)} ppm (문 닫은 뒤 첫 값 기준, 11주차 p.30)`,
+        `0분 ${hm(at(Q1.i0))} ${n2(Q1.c0)} ppm, 60분 ${hm(at(Q1.i1))} ${n2(Q1.c1)} ppm (문 닫은 뒤 첫 값 기준)`,
         `n = ln[(${n2(Q1.c0)} − ${CO}) / (${n2(Q1.c1)} − ${CO})] / 1 h = ${Q1.n.toFixed(3)} 회/h → Q = n·V = ${Q1.Q.toFixed(1)} m³/h`,
         `반감기 ${Q1.half.toFixed(1)} h · 신축 공동주택 기준 0.5 회/h의 ${Math.round(Q1.n / 0.5 * 100)}% 수준`],
       run() { reset({ q: true }); goOverview(); setTimeout(() => scrollQ('q1Eq'), 60); } },
     { title: 'Q2-1 · 계속 머물러도 1,000 ppm 이하가 되려면', body: [
-        `최고 ${n2(co2[iPeak])} ppm > 1,000 ppm → Q2-1 해당 · 정상상태 Css = Cᵢ + G/Q ≤ 1,000 ppm (11주차 p.20)`,
+        `최고 ${n2(co2[iPeak])} ppm > 1,000 ppm → Q2-1 해당 · 정상상태 Css = Cᵢ + G/Q ≤ 1,000 ppm`,
         `G = 3명 × 0.018 = ${Q2.G.toFixed(3)} m³/h → Q ≥ ${Q2.G.toFixed(3)} / (580 × 10⁻⁶) = ${Q2.Qreq.toFixed(1)} m³/h`,
         `n = ${Q2.nReq.toFixed(2)} 회/h · 1인당 ${Q2.perPerson.toFixed(1)} m³/h (강의 29–36) · 지금 침기량의 약 ${Math.round(Q2.ratio)}배`],
       run() { reset({ q: true }); goOverview(); setTimeout(() => scrollQ('q2Eq'), 60); } },
     { title: '계산기로 확인', body: [
         `지금 틈새바람(n = ${Q1.n.toFixed(2)})이면 3명 1시간에 약 ${n2(Math.round(Math.max(...modelSeries(NOCC, Q1.n).filter(v => v != null))))} ppm`,
         `'Q2 필요 환기' 버튼 → n = ${Q2.nReq.toFixed(2)}이면 1,000 ppm 아래에 머묾`,
-        `측정으로 거꾸로 구한 1인당 발생량 약 ${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h — 가정 18 L/h(p.24 Office Work)보다 조금 큼`],
+        `측정으로 거꾸로 구한 1인당 발생량 약 ${(measuredGen(Q1.n) * 1000).toFixed(0)} L/h — 가정값 18 L/h보다 조금 큼`],
       run() { reset({ q: true }); goOverview(); setSim(NOCC, Q1.n); setTimeout(() => scrollQ('simChart'), 60); } },
     { title: '정리', end: true, body: [
         `창문과 문을 닫으면 틈새바람(${Q1.n.toFixed(2)} 회/h)만으로는 3명이 1시간 만에 ${n2(co2[iPeak])} ppm`,
         `1,000 ppm을 지키려면 시간당 약 ${Math.round(Q2.Qreq)} m³의 외기 필요 → 창문 환기나 기계환기가 필요`,
-        'CO₂ 측정기 하나로 보이지 않는 환기량을 잴 수 있었음 (11주차 p.9)'],
-      run() { reset({ spin: true }); goOverview(); } },
+        'CO₂ 측정기 하나로 보이지 않는 환기량을 잴 수 있었음'],
+      run() { reset(); goOverview(spinAfter(STEPS.length - 1)); } },
   ];
   let cur = 0, free = false;
   STEPS.forEach((s, i) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', `${i + 1}. ${s.title}`); b.addEventListener('click', () => show(i)); capDots.appendChild(b); });
@@ -2088,6 +2123,7 @@ function route() {
   else { goOverview(); setSpin(!REDUCED); }
 }
 if (PRESENT) window.__presentStart(); else { route(); addEventListener('hashchange', route); }
+VO.ready = true;
 document.getElementById('loading').style.display = 'none';
 requestAnimationFrame(frame);
 </script>
