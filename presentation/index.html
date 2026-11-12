@@ -1651,10 +1651,10 @@ function goOverview(done) {
   const k = fitK();
   flyTo(new THREE.Vector3(5.0 * k, 6.0 * k, 6.4 * k), new THREE.Vector3(0, 0.45, 0.15), 38, done);
 }
-// same distance and height as the overview, orbited around the room by `deg` (positive = model turns left on screen)
+// same distance and height as the overview, orbited around the room by `deg` (overview is at +38°, from the bed/desk corner)
 function goAngle(deg, done) {
   setMode('overview'); setOrbitLimits(false);
-  const k = fitK(), r = Math.hypot(5.0, 6.4) * k, th = Math.atan2(5.0, 6.4) + deg * Math.PI / 180;
+  const k = fitK() * 1.08, r = Math.hypot(5.0, 6.4) * k, th = Math.atan2(5.0, 6.4) + deg * Math.PI / 180;
   flyTo(new THREE.Vector3(r * Math.sin(th), 6.0 * k, r * Math.cos(th)), new THREE.Vector3(0, 0.45, 0.15), 38, done);
 }
 function goTop() {
@@ -2021,7 +2021,7 @@ if (PRESENT) {
   };
   // auto-rotation starts only once the camera has arrived (OrbitControls keeps auto-rotating even while disabled)
   const spinAfter = idx => () => { if (cur === idx && !free && !REDUCED) setSpin(true); };
-  const FLOW_ANGLE = 35;                           // Case 1·2: model turned ~left (camera toward the bed-side wall), oblique so all three occupants show
+  const FLOW_ANGLE = -100;                         // Case 1·2: from the kitchen side, a little toward the entrance, looking at the CO₂ sensor wall
   const STEPS = [
     { title: DECK, cover: true, run() { reset(); goOverview(spinAfter(0)); } },
     { title: '측정 장소 · 자취방 원룸', body: [
